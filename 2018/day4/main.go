@@ -40,7 +40,7 @@ const (
 )
 
 // An EntryHeap is a min-heap of ints.
-type EntryHeap []Entry
+type EntryHeap []*Entry
 
 func (h EntryHeap) Len() int { return len(h) }
 func (h EntryHeap) Less(i, j int) bool {
@@ -52,7 +52,7 @@ func (h EntryHeap) Swap(i, j int) { h[i], h[j] = h[j], h[i] }
 func (h *EntryHeap) Push(x interface{}) {
 	// Push and Pop use pointer receivers because they modify the slice's length,
 	// not just its contents.
-	*h = append(*h, x.(Entry))
+	*h = append(*h, x.(*Entry))
 }
 
 func (h *EntryHeap) Pop() interface{} {
@@ -71,7 +71,7 @@ func main() {
 
 	lines := strings.Split(string(out), "\n")
 
-	entries := EntryHeap(make([]Entry, 0, len(lines)-1))
+	entries := EntryHeap(make([]*Entry, 0, len(lines)-1))
 
 	for _, line := range lines {
 		if line == "" {
@@ -104,7 +104,7 @@ func main() {
 		}
 
 		date := time.Date(y, time.Month(month), d, h, min, 0, 0, time.UTC)
-		entry := Entry{
+		entry := &Entry{
 			time:    date,
 			guardID: guard,
 			status:  status,
@@ -117,7 +117,7 @@ func main() {
 
 	var prevEntry *Entry
 	for i := range entries {
-		entry := &entries[i]
+		entry := entries[i]
 		if prevEntry == nil {
 			prevEntry = entry
 			continue
@@ -126,7 +126,19 @@ func main() {
 			entry.guardID = prevEntry.guardID
 		}
 
-		prevEntry.duration = entry.time.Sub(prevEntry.time) //- time.Minute
+		// y, m, d := entry.time.Date()
+		// pY, pM, pD := prevEntry.time.Date()
+		if entry.guardID != prevEntry.guardID {
+
+			// 	entryDay := time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
+			// 	mleft := entryDay.Sub(prevEntry.time)
+			// 	fmt.Printf("entry: %s; prevEntry: %s, leaving next day to be: %+v, so minutes left is: %f\n", entry.String(), prevEntry.String(), entryDay, mleft.Minutes())
+			// 	prevEntry.duration = mleft
+
+			prevEntry.duration = time.Minute * time.Duration(60-prevEntry.time.Minute())
+		} else {
+			prevEntry.duration = entry.time.Sub(prevEntry.time)
+		}
 
 		prevEntry = entry
 	}
@@ -179,10 +191,10 @@ func main() {
 	fmt.Println(maxGuard, maxMinute, maxGuard*maxMinute)
 }
 
-func visualise(entries []Entry) {
+func visualise(entries []*Entry) {
 	fmt.Println("Date\tID\tMinute")
 
-	fmt.Printf("\t\t\t")
+	fmt.Printf("\t\t")
 	for t := 0; t < 6; t++ {
 		for o := 0; o < 10; o++ {
 			fmt.Print(t)
@@ -191,7 +203,7 @@ func visualise(entries []Entry) {
 
 	fmt.Println()
 
-	fmt.Printf("\t\t\t")
+	fmt.Printf("\t\t")
 	for t := 0; t < 6; t++ {
 		for o := 0; o < 10; o++ {
 			fmt.Print(o)
@@ -199,17 +211,48 @@ func visualise(entries []Entry) {
 	}
 
 	var prev *Entry
+	printed := 0
 	for _, entry := range entries {
-		if prev == nil || prev.time.YearDay() != entry.time.YearDay() {
+		mins := entry.duration.Minutes()
+
+		if prev == nil || dayDifferent(prev, entry) || prev.guardID != entry.guardID {
+			printed = 0
+
 			fmt.Println()
-			fmt.Printf("%02d-%02d\t#%d", entry.time.Month(), entry.time.Day(), entry.guardID)
+			fmt.Printf("%02d-%02d\t#%d\t", entry.time.Month(), entry.time.Day(), entry.guardID)
+
+			// If guard starts shift at 00:20, time we need 20 pre-start dots
+			// But not if they start before the hour
+			if entry.time.Hour() == 0 {
+				for i := 0; i < entry.time.Minute(); i++ {
+					fmt.Printf("p")
+					printed += 1
+				}
+			} else {
+				// If they start before the hour. We do something illegal. We
+				mins -= float64(60 - entry.time.Minute())
+			}
 		}
 
-		if prev != nil {
-			fmt.Printf("This is: %s, Prev was: %s\n", entry.String(), prev.String())
+		for i := 0; i < int(mins); i++ {
+			if printed == 60 {
+				break
+			}
+			c := "."
+			if entry.status == statusAsleep {
+				c = "#"
+			}
+			fmt.Print(c)
+			printed++
 		}
-		prev = &entry
+		prev = entry
 	}
 
 	fmt.Println()
+}
+
+func dayDifferent(a, b *Entry) bool {
+	aY, aM, aD := a.time.Date()
+	bY, bM, bD := b.time.Date()
+	return aY != bY || aM != bM || aD != bD
 }
