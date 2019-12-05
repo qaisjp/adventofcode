@@ -24,9 +24,9 @@ def read_val(nums, i):
         elif mode == 1:
             print("Reading param number", off, 'as immediate. value: {}'.format(addr_or_val))
             return addr_or_val
+
     def put_param(fval, off):
         # fval = get_param(f)
-
         mode = get_digit(n, off + 2)
         addr_or_val = nums[i + 1 + off]
         if mode == 0:
@@ -72,6 +72,34 @@ def part1(nums, a=12, b=2):
             print("printing:", v)
             finalvals.append(v)
             fields += 1
+        elif opcode == 5 or opcode == 6:
+            should_jump = get_param(0)
+            new_ip = get_param(1)
+            if opcode == 5:
+                should_jump = should_jump != 0 # jump if true
+            else:
+                should_jump = should_jump == 0 # jump if false
+
+            if should_jump:
+                i = new_ip
+                continue
+            fields += 2
+        elif opcode == 7:
+            a = get_param(0)
+            b = get_param(1)
+            val = 0
+            if a < b:
+                val = 1
+            put_param(val, 2)
+            fields += 3
+        elif opcode == 8:
+            a = get_param(0)
+            b = get_param(1)
+            val = 0
+            if a == b:
+                val = 1
+            put_param(val, 2)
+            fields += 3
         else:
             print("Unknown opcode", opcode)
             sys.exit(1)
