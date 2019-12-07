@@ -39,16 +39,18 @@ def read_val(nums, i):
     return opcode, get_param, put_param
 
 
-def run(nums, inputs):
-    input_num = 0
-    stdout = []
+def run(state):
+    # nums, inputs, i=0, input_num=0
     halted = False
+    should_break = False
+    state['stdout'] = None
 
-    i = 0
+    i = state['ip']
     while True:
-        opcode, get_param, put_param = read_val(nums, i)
+        opcode, get_param, put_param = read_val(state['data'], i)
         if opcode == 99:
-            halt = True
+            halted = True
+            # print("halting")
             break
 
         fields = 1
@@ -66,14 +68,23 @@ def run(nums, inputs):
             # print("a({}) * b({}) = {}".format(a, b, a * b))
             fields += 3
         elif opcode == 3:
-            result = int(inputs[input_num])
-            put_param(result, 0)
-            fields += 1
-            input_num += 1
+            # print("Input num is", state['stdin_index'])
+            inputs = state['stdin']
+            if state['stdin_index'] >= len(inputs):
+                should_break = True
+                fields = 0
+                # print("Waiting for input", i)
+            else:
+                if state['stdin_index'] > 0:
+                    assert state['stdin_index'] == len(inputs)-1
+                result = int(inputs[state['stdin_index']])
+                put_param(result, 0)
+                fields += 1
+                state['stdin_index'] += 1
         elif opcode == 4:
             v = get_param(0)
             # print("printing:", v)
-            stdout.append(v)
+            state['stdout'] = v
             fields += 1
         elif opcode == 5 or opcode == 6:
             should_jump = get_param(0)
@@ -109,9 +120,12 @@ def run(nums, inputs):
 
         # print(i, "nums is now", nums)
         i += fields
+        if should_break:
+            break
 
-    # print("halt?", halted)
-    return nums[0], stdout
+    state['ip'] = i
+
+    return halted
 
 def try_sequence(numbers, seq):
     inputs = [0, 0]
@@ -135,11 +149,55 @@ def part1(numbers):
     return highest
 
 
+def try_sequence(numbers, seq):
+    states = []
+    for i in range(5):
+        states.append({
+            'ip': 0,
+            'stdout': 0,
+            'data': numbers.copy(),
+            'stdin': [seq[i]],
+            'stdin_index': 0,
+        })
+
+    i = 0
+    prev_state = states[len(states) - 1]
+    curr_state = states[i]
+    while True:
+        prev_state = curr_state
+        curr_state = states[i]
+
+        curr_state['stdin'].append(prev_state['stdout'])
+        # print(i, "->", repr(curr_state))
+        halted = run(curr_state)
+        # print(i, "<-", repr(curr_state))
+        # print()
+
+        if halted and i == 4:
+            # print(i, "halted")
+            break
+
+        i += 1
+        if i >= len(seq):
+            i = 0
+
+    return states[4]['stdout']
+
+def part2(numbers):
+    highest = 0
+    for sequence in permutations([5, 6, 7, 8, 9]):
+        old_highest = highest
+        highest = max(highest, try_sequence(numbers.copy(), sequence))
+        if highest != old_highest:
+            print("new sequence is", sequence)
+    return highest
+
+
 with open('input.txt', 'r') as f:
     for line in f:
         line=line.strip()
         numbers = list(map(int,line.split(",")))
         if len(numbers) > 0:
             # print("len", len(numbers))
-            r = part1(numbers)
+            r = part2(numbers)
             print("\nReturned: ", r)
