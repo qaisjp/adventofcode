@@ -82,8 +82,6 @@ def find_lcm(moons):
     step_num = 0
     while True:
         step_num += 1
-        # print('after', step_num, 'steps')
-
         new_moons = []
 
         # apply gravity and velocity
@@ -92,20 +90,13 @@ def find_lcm(moons):
             for j, jmoon in enumerate(moons):
                 if i == j:
                     continue
-
                 vel += sign_or_zero(jmoon[0] - imoon[0])
-                # vel[1] += sign_or_zero(jmoon.pos.y - imoon.pos.y)
-                # vel[2] += sign_or_zero(jmoon.pos.z - imoon.pos.z)
 
             new_moons.append((imoon[0] + vel, vel))
-
-            # print(new_moons[i])
         moons = new_moons
         if tuple(new_moons) in steps:
-            # print('x', step_num)
             return step_num
         steps.add(tuple(moons))
-        # print()
 
 def part2():
     moons = read_file()
