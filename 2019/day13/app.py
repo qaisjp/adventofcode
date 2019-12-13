@@ -279,22 +279,6 @@ def part2(numbers):
 
         state['stdin'].append(joystick_pos)
 
-    # lines = []
-    # for y in sorted(grid.keys()):
-    #     xs = sorted(grid[y])
-
-    #     l = []
-    #     for x in range(max(xs)+1):
-    #         print(y, x)
-    #         c = grid[y][x]
-    #         if c == 1:
-    #             l.append('██')
-    #         elif c == 0:
-    #             l.append('  ')
-    #     lines.append("".join(l))
-
-    # print("\n".join(lines))
-
     return score #state['stdout']
 
 
