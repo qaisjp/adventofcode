@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/qaisjp/adventofcode/2020/internal/parse"
+	"github.com/qaisjp/adventofcode/2020/internal/aoc"
 )
 
 var input1 = []int{
@@ -31,7 +31,7 @@ func main() {
 
 func firstPuzzle() {
 	filename := os.Args[2]
-	input := parse.FilenameToInts(filename)
+	input := aoc.FilenameToInts(filename)
 	for _, a := range input {
 		for _, b := range input {
 			if a+b == 2020 {
@@ -43,7 +43,7 @@ func firstPuzzle() {
 
 func secondPuzzle() {
 	filename := os.Args[2]
-	input := parse.FilenameToInts(filename)
+	input := aoc.FilenameToInts(filename)
 	for _, a := range input {
 		for _, b := range input {
 			for _, c := range input {
