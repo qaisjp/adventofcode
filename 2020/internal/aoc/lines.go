@@ -2,6 +2,7 @@ package aoc
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strconv"
 )
@@ -23,6 +24,13 @@ func ForFilenameLines(path string, mapper func(string)) {
 	}
 }
 
+func ScanLines(path string, format string, f func(string), a ...interface{}) {
+	ForFilenameLines(path, func(line string) {
+		_, err := fmt.Sscanf(line, format, a...)
+		Must(err)
+		f(line)
+	})
+}
 func FilenameToInts(path string) (results []int) {
 	ForFilenameLines(path, func(line string) {
 		i, err := strconv.Atoi(line)
@@ -32,4 +40,10 @@ func FilenameToInts(path string) (results []int) {
 		results = append(results, i)
 	})
 	return
+}
+
+func Must(err error) {
+	if err != nil {
+		panic(err.Error())
+	}
 }
