@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/qaisjp/adventofcode/2020/internal/aoc"
-	parse "github.com/qaisjp/adventofcode/2020/internal/aoc"
 )
 
 type Policy struct {
@@ -88,7 +87,7 @@ func LinesFromFilename(path string) []Line {
 }
 
 func main() {
-	puzzleOne := parse.CheckArgs()
+	puzzleOne := aoc.CheckArgs()
 
 	lines := LinesFromFilename(os.Args[2])
 
