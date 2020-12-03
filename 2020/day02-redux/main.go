@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
-	"github.com/qaisjp/adventofcode/2020/internal/aoc"
 )
 
 type Data struct {
@@ -20,7 +18,7 @@ func main() {
 	valid := 0
 
 	data := Data{}
-	aoc.ScanLines(os.Args[2], "%d-%d %c: %s", func(line string) {
+	ScanLines(os.Args[2], "%d-%d %c: %s", func(line string) {
 		if puzzleOne {
 			count := strings.Count(data.pw, string(data.c))
 			if count >= data.lo && count <= data.hi {

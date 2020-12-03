@@ -5,8 +5,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/qaisjp/adventofcode/2020/internal/aoc"
 )
 
 type Policy struct {
@@ -57,7 +55,7 @@ func fail(err error) {
 
 func LinesFromFilename(path string) []Line {
 	var passwords []Line
-	aoc.ForFilenameLines(path, func(line string) {
+	ForFilenameLines(path, func(line string) {
 		items := strings.Split(line, " ")
 		if len(items) != 3 {
 			panic(fmt.Sprint("len of items", line, "is", len(items)))
@@ -87,7 +85,7 @@ func LinesFromFilename(path string) []Line {
 }
 
 func main() {
-	puzzleOne := aoc.CheckArgs()
+	puzzleOne := CheckArgs()
 
 	lines := LinesFromFilename(os.Args[2])
 
