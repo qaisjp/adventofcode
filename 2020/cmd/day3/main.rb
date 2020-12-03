@@ -343,17 +343,43 @@ def check(line, x)
 	line[x % max]
 end
 
-ys = lines2.split("\n")
+$ys = lines2.split("\n")
 
-y = 0
-x = 0
-found = 0
-loop do
-	item = check(ys[y], x)
-	if item == "#"
-		found += 1
+def one
+	y = 0
+	x = 0
+	found = 0
+	loop do
+		item = check($ys[y], x)
+		if item == "#"
+			found += 1
+		end
+		print(item, found, "\n")
+		y += 1
+		x += 3
 	end
-	print(item, found, "\n")
-	y += 1
-	x += 3
 end
+
+
+def incr(xx, yy)
+	y = 0
+	x = 0
+	found = 0
+	loop do
+		break if y >= $ys.length
+		item = check($ys[y], x)
+		if item == "#"
+			found += 1
+		end
+		# print(item, found, "\n")
+		y += yy
+		x += xx
+	end
+	found
+end
+
+
+def two
+	puts(incr(1, 1) * incr(3,1) * incr(5,1) * incr(7,1) * incr(1,2))
+end
+two
