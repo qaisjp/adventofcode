@@ -4,7 +4,7 @@ def check(line, x)
 end
 
 n = ARGV.shift
-$ys = ARGF.read.split("\n")
+$ys = ARGF.each_line.map(&:strip)
 
 def incr(xx, yy)
 	y = 0
