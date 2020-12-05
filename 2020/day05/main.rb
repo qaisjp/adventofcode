@@ -46,21 +46,30 @@ class AoC
 	end
 
 	def two
-		require 'set'
-		grid = {}
-		@data.map do |x|
+		grid = @data.each_with_object({}) do |x, grid|
 			row, col, val = parse_line(x)
 			# puts "#{x} -- row: #{row}, col: #{col}, val: #{val}\n\n"
 			grid[row] ||= {}
 			grid[row][col] = true
 		end
 
+		found_yet = false
+		result = nil
 		(0..127).each do |y|
-			val = grid.fetch(y, {})
-			vals = (0..7).map {|k| val.fetch(k, false) ? "X" : " "}
-			y = "%3.3d" % y
+			xs = grid.fetch(y, {})
+			vals = (0..7).map do |x|
+				just_found = xs.fetch(x, false)
+				if just_found
+					found_yet = true
+				elsif found_yet && !result
+					result = (y*8) + x
+				end
+				just_found ? "X" : " "
+			end
+			y = "%3d" % y
 			puts "#{y}: #{vals.join("")}"
 		end
+		puts "result; #{result}"
 	end
 end
 
