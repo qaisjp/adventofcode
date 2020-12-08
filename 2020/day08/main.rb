@@ -3,6 +3,7 @@
 
 require 'sorbet-runtime'
 require 'scanf'
+require 'set'
 
 # AoC
 class AoC
@@ -18,12 +19,13 @@ class AoC
     prop :arg, Integer
   end
 
-  def reset
+  def reset!
     @acc = 0
     @pc = 0
   end
 
   def initialize(data)
+    reset!
     instrs = data.map do |line|
       op, arg = line.scanf("%s %d")
       Instruction.new(op: Op.deserialize(op), arg: arg)
@@ -32,12 +34,19 @@ class AoC
   end
 
   def one
+    seen_instructions = Set.new
     loop do
       instr = @instructions[@pc]
       if !instr
         puts "Missing instruction for pc #{@pc}"
         break
       end
+
+      if seen_instructions.include?(@pc)
+        puts "Running ##{@pc} a second time. Accumulator is #{@acc}"
+        break
+      end
+      seen_instructions << @pc
 
       next_pc = @pc + 1
       op = instr.op
