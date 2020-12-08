@@ -5,48 +5,49 @@ require 'sorbet-runtime'
 require 'scanf'
 require 'set'
 
-# AoC
-class AoC
-  class Op < T::Enum
-    enums do
-      NOP = new('nop')
-      ACC = new('acc')
-      JMP = new('jmp')
-    end
+class Op < T::Enum
+  enums do
+    NOP = new('nop')
+    ACC = new('acc')
+    JMP = new('jmp')
   end
-  class Instruction < T::Struct
-    prop :op, Op
-    prop :arg, Integer
-  end
+end
+
+class Instruction < T::Struct
+  prop :op, Op
+  prop :arg, Integer
+end
+
+class ProgramExecutor
+  extend T::Sig
+
+  attr_reader :acc
+  attr_reader :pc
 
   def reset!
     @acc = 0
     @pc = 0
   end
 
-  def initialize(data)
-    reset!
-    instrs = data.map do |line|
-      op, arg = line.scanf("%s %d")
-      Instruction.new(op: Op.deserialize(op), arg: arg)
-    end
-    @instructions = T.let(instrs, T::Array[Instruction])
+  sig {params(instrs: T::Array[Instruction]).void}
+  def initialize(instrs)
+    @instrs = T.let(instrs.dup, T::Array[Instruction])
+    @acc = T.let(0, Integer)
+    @pc = T.let(0, Integer)
   end
 
-  def one
-    seen_instructions = Set.new
+  sig {params(before_exec: T.nilable(T.proc.params(pc: Integer, instr: Instruction).returns(T::Boolean))).void}
+  def run!(before_exec: nil)
     loop do
-      instr = @instructions[@pc]
+      instr = @instrs[@pc]
       if !instr
         puts "Missing instruction for pc #{@pc}"
         break
       end
 
-      if seen_instructions.include?(@pc)
-        puts "Running ##{@pc} a second time. Accumulator is #{@acc}"
-        break
+      if !before_exec.nil?
+        return unless before_exec.call(@pc, instr)
       end
-      seen_instructions << @pc
 
       next_pc = @pc + 1
       op = instr.op
@@ -64,8 +65,31 @@ class AoC
       @pc = next_pc
     end
   end
+end
 
-  def two; end
+class AoC
+  def initialize(data)
+    instrs = data.map do |line|
+      op, arg = line.scanf("%s %d")
+      Instruction.new(op: Op.deserialize(op), arg: arg)
+    end
+    @instructions = T.let(instrs, T::Array[Instruction])
+    @seen_instructions = T.let(Set.new, T::Set[Integer])
+  end
+
+  def one
+    exec = ProgramExecutor.new(@instructions)
+
+    before_exec = lambda do |pc, instr|
+      if @seen_instructions.include?(pc)
+        puts "Running ##{pc} a second time. Accumulator is #{exec.acc}"
+        return false
+      end
+      @seen_instructions << pc
+      true
+    end
+    exec.run!(before_exec: before_exec)
+  end
 end
 
 def main
