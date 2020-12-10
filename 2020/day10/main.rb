@@ -12,7 +12,7 @@ class AoC
     @device_jolt = @bag_jolts.max + 3
     @outlet_jolt = 0
 
-    @available_jolts = @bag_jolts.dup
+    @available_jolts = T.let(@bag_jolts.dup, T::Array[Integer])
     @available_jolts << @device_jolt
     raise unless @available_jolts.to_set.size == @available_jolts.size
   end
@@ -46,23 +46,23 @@ class AoC
 
   end
 
-  def two
+  def two_naive(base_jolt: @outlet_jolt, max_jolt: @device_jolt)
     pending_jolts = T::Set[T::Array[Integer]].new [
-      [@outlet_jolt],
+      [base_jolt],
     ]
 
     # completed_sequences = T::Set[T::Array[Integer]].new []
     completed_sequences = 0
 
     while !pending_jolts.empty?
-      puts "Pending jolts now #{pending_jolts.size}"
+      # puts "Pending jolts now #{pending_jolts.size}"
       pending_jolts.dup.each do |jolt_sequence|
         current_jolt = T.must(jolt_sequence.last)
 
         [1, 2, 3].each do |difference|
           try_jolt = current_jolt + difference
           if @available_jolts.include? try_jolt
-            if try_jolt == @device_jolt
+            if try_jolt == max_jolt
               # completed_sequences << new_jolt_sequence
               completed_sequences += 1
             else
@@ -80,8 +80,30 @@ class AoC
 
 
     puts "Distinct arrangements: #{completed_sequences}"
-
+    completed_sequences
   end
+
+  def two_smart
+    main_sequence = @available_jolts.sort
+    main_sequence.insert(0, 0)
+
+    subsequences = T::Array[T::Array[Integer]].new []
+
+    prev = 0
+    main_sequence.each_with_object([]) do |n, seq|
+      if n - prev == 3
+        puts "Found #{seq}"
+        subsequences << seq.dup
+        seq.clear
+      end
+      seq << n
+      prev = n
+    end
+    puts "subs: #{subsequences}"
+    result = subsequences.map {|a| a.size == 1 ? 1 : two_naive(base_jolt: a.first, max_jolt: a.last)}.inject(:*)
+    puts "ans: #{result}"
+  end
+
 end
 
 def main
@@ -90,8 +112,10 @@ def main
 
   if n == '1'
     runner.one
-  else
-    runner.two
+  elsif n == '2'
+    runner.two_smart
+  elsif n == '3'
+    runner.two_naive
   end
 end
 main
