@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
+require 'sorbet-runtime'
+
 # AoC
 class AoC
   def initialize(data)
-    @data = data
+    # @data = T.let(data.map(&:to_i), T::Array[Integer])
+    @data = T.let(data, T::Array[String])
   end
 
   def one
@@ -12,7 +15,9 @@ class AoC
     end
   end
 
-  def two; end
+  def two
+
+  end
 end
 
 def main
@@ -20,9 +25,9 @@ def main
   runner = AoC.new ARGF.readlines.to_a
 
   if n == '1'
-    runner.one
-  else
-    runner.two
+    echo "Result: #{runner.one}"
+  elsif n == '2'
+    echo "Result: #{runner.two}"
   end
 end
 main
