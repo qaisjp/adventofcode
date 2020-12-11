@@ -16,11 +16,13 @@ class AoC
   def get_range(grid, y, x)
     line = nil
 
+    # return nil if the range contains any negative values or values too wide or tall
     ys = [y.respond_to?(:to_a) ? [y.begin, y.end] : y].flatten
     xs = [x.respond_to?(:to_a) ? [x.begin, x.end] : x].flatten
     return nil if ys.any? {|y| y < 0 || y >= grid.size}
     return nil if xs.any? {|x| x < 0 || x >= grid[0].size}
 
+    # determine if this is a reversed range (e.g. 8..2)
     reverse_y = false
     reverse_x = false
     if y.is_a?(Range) && y.begin > y.end
@@ -32,7 +34,8 @@ class AoC
       reverse_x = true
     end
 
-    if x.is_a?(Range) && y.is_a?(Range)
+    if x.is_a?(Range) && y.is_a?(Range) # (diagonals)
+      # make sure we truncate any longer part (and handle reversed ranges too)
       y_size = y.size
       x_size = x.size
       offset = (y_size - x_size).abs
@@ -95,17 +98,6 @@ class AoC
           [y+1, x-1],
           [y+1, x+1],
 
-
-          # [y+1..y+4, x+1..x+4],
-          # [y-4..y-1, x+1..x+4],
-          # [y+1..y+4, x-4..x-1],
-          # [y-4..y-1, x-4..x-1],
-
-          # [y+1, x],
-          # [y-1, x],
-          # [y, x+1],
-          # [y, x-1],
-
         ]
         adjacents = adjacent_indices.map {|pair| get_range(grid, pair[0], pair[1])}
 
@@ -149,12 +141,12 @@ class AoC
         ]
         adjacents = adjacent_indices.map do |y,x|
           raw_chars = get_range(grid, y, x)
-          next nil if raw_chars.nil?
-          first_visible = raw_chars.gsub(".", "")
-          if first_visible == ""
+          next nil if raw_chars.nil? # handle invalid ranges for the borders
+          first_visible = raw_chars.gsub(".", "") # converts "....#L#" into "#L#" (or "...." into "")
+          if first_visible == "" # convert empty string to a single dot
             first_visible = "."
           end
-          first_visible[0]
+          first_visible[0] # pluck "#" from "#L#" (or "." from ".")
         end
 
         # puts "y: #{y}; x: #{x}; c: #{c}; #{adjacent_indices.zip(adjacents).to_h}" if c == "L"
