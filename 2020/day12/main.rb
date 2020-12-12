@@ -13,7 +13,6 @@ class AoC
   def cos(x); Math.cos(Math::PI*x/180) end
   def sin(x); Math.sin(Math::PI*x/180) end
 
-
   def one
     ship = 0 + 0i
     angle = 0 # east is 0
@@ -28,7 +27,7 @@ class AoC
       elsif direction == "E"
         ship += distance
       elsif direction == "S"
-        ship -= distance*1i
+        ship -= distance * 1i
       elsif direction == "W"
         ship -= distance
       elsif direction == "L"
@@ -36,7 +35,7 @@ class AoC
       elsif direction == "R"
         angle -= distance
       elsif direction == "F"
-        ship += (distance * (cos(angle) + (1i*sin(angle))))
+        ship += (distance * (cos(angle) + (1i * sin(angle))))
       end
       puts "Moved to #{ship} bearing #{angle}"
     end
@@ -56,19 +55,19 @@ class AoC
       puts "\n#{direction}#{distance} (from waypoint #{waypoint}, ship #{ship})"
 
       if direction == "N"
-        waypoint += distance*1i
+        waypoint += distance * 1i
       elsif direction == "E"
         waypoint += distance
       elsif direction == "S"
-        waypoint -= distance*1i
+        waypoint -= distance * 1i
       elsif direction == "W"
         waypoint -= distance
       elsif direction == "L"
         angle = distance
-        waypoint *= cos(angle) + (1i*sin(angle))
+        waypoint *= cos(angle) + (1i * sin(angle))
       elsif direction == "R"
         angle = -distance
-        waypoint *= cos(angle) + (1i*sin(angle))
+        waypoint *= cos(angle) + (1i * sin(angle))
       elsif direction == "F"
         ship += distance * waypoint
       end
