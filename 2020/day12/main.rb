@@ -2,6 +2,13 @@
 
 require 'sorbet-runtime'
 
+# Something I experimented with later
+module EnhancedComplex
+  def x; real; end
+  def y; imag; end
+end
+Complex.class_eval {include EnhancedComplex}
+
 # AoC
 class AoC
   def initialize(data)
@@ -41,7 +48,7 @@ class AoC
     end
 
     puts ""
-    return ship.real.abs.round + ship.imag.abs.round
+    return ship.x.abs.round + ship.y.abs.round
   end
 
   def two
@@ -75,7 +82,7 @@ class AoC
     end
 
     puts ""
-    return ship.real.abs.round + ship.imag.abs.round
+    return ship.x.abs.round + ship.y.abs.round
   end
 end
 
