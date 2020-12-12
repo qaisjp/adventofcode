@@ -25,9 +25,9 @@ def main
   runner = AoC.new ARGF.readlines.to_a
 
   if n == '1'
-    echo "Result: #{runner.one}"
+    puts "Result: #{runner.one}"
   elsif n == '2'
-    echo "Result: #{runner.two}"
+    puts "Result: #{runner.two}"
   end
 end
 main
