@@ -10,8 +10,8 @@ class AoC
   end
 
   def one
-    @data.each do |x|
-      puts "X: #{x}"
+    @data.each do |line|
+      puts "X: #{line}"
     end
   end
 
