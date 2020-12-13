@@ -40,7 +40,52 @@ class AoC
     earliest * wait_time
   end
 
+  ### FROM ROSETTA CODE
+  def extended_gcd(a, b)
+    last_remainder, remainder = a.abs, b.abs
+    x, last_x, y, last_y = 0, 1, 1, 0
+    while remainder != 0
+      last_remainder, (quotient, remainder) = remainder, last_remainder.divmod(remainder)
+      x, last_x = last_x - quotient*x, x
+      y, last_y = last_y - quotient*y, y
+    end
+    return last_remainder, last_x * (a < 0 ? -1 : 1)
+  end
+
+  def invmod(e, et)
+    g, x = extended_gcd(e, et)
+    if g != 1
+      raise 'Multiplicative inverse modulo does not exist!'
+    end
+    x % et
+  end
+
+  def chinese_remainder(mods, remainders)
+    max = mods.inject( :* )  # product of all moduli
+    series = remainders.zip(mods).map{ |r,m| (r * max * invmod(max/m, m) / m) }
+    series.inject( :+ ) % max
+  end
+  ### END ROSETTA CODE
+
   def two
+    int_ids = @bus_ids.filter {|x| x != "x"}.map(&:to_i)
+    ids = @bus_ids.map do |x|
+      if x == "x"
+        x
+      else
+        x.to_i
+      end
+    end
+
+    chinese_remainder(
+      int_ids,
+      int_ids.map {|n| n - ids.index(n)},
+    )
+  end
+
+
+  ### OLD CODE
+  def two_naive
     int_ids = @bus_ids.filter {|x| x != "x"}.map(&:to_i)
     ids = @bus_ids.map do |x|
       if x == "x"
@@ -63,35 +108,40 @@ class AoC
     end
     puts "Initial time is: #{initial_time}"
 
-    loop do
-      initial_time += 1
+    hop_size = ids.size
 
-      # skip if least frequent does not match
-      test = (initial_time + lfid_offset).to_f/least_frequent_id
-      if test.to_i != test
-        # initial_time += lfid_offset
-        # puts "Hopping to #{initial_time}"
-        next
+    loop do
+      passed = false
+
+      # scan the range for the lfid
+      while initial_time < initial_time+hop_size
+        initial_time += 1
+
+        # skip if least frequent is invalid
+        next if initial_time % least_frequent_id != 0
+
+        # oh shit, one of these were valid!!!
+        passed = true
+        break
       end
+
+      next unless passed
+
       if initial_time > 1068700 && initial_time < 1068794
         puts "Candidate #{initial_time}"
       end
 
-      passed = true
-      ids.each_with_index do |id, offset|
-        next if id == "x"
+      # passed = true
+      passed = ids.each_with_index.all? do |id, offset|
+        next true if id == "x"
 
-        test = (initial_time + offset).to_f/id
-        if test.to_i != test
-          passed = false
-          break
-        end
+        next ((initial_time + offset - lfid_offset) % id) == 0
       end
 
       break if passed
     end
 
-    initial_time
+    initial_time - lfid_offset
   end
 end
 
@@ -103,6 +153,7 @@ def main
     puts "Result: #{runner.one}"
   elsif n == '2'
     raise unless 1068781 == AoC.new(["1", "7,13,x,x,59,x,31,19"]).two
+    # raise
     raise unless 3417 == AoC.new(["1", "17,x,13,19"]).two
     raise unless 754018 == AoC.new(["1", "67,7,59,61"]).two
     raise unless 779210 == AoC.new(["1", "67,x,7,59,61"]).two
