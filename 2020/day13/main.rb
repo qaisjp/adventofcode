@@ -50,15 +50,32 @@ class AoC
       end
     end
 
-    most_frequent_id = T.let(int_ids.min, Integer)
-    puts "Most frequent: #{most_frequent_id}"
+    least_frequent_id = T.let(int_ids.max, Integer)
+    lfid_offset = ids.find_index(least_frequent_id)
+
+    puts "LF_ID: #{least_frequent_id}, LFID_OFFSET: #{lfid_offset}"
+
     initial_time = 0
-    if @earliest_depart > 1000
+    if @earliest_depart > 10000
       initial_time = 100000000000000
+    elsif @earliest_depart > 1000
+      initial_time = 1000000000
     end
+    puts "Initial time is: #{initial_time}"
 
     loop do
       initial_time += 1
+
+      # skip if least frequent does not match
+      test = (initial_time + lfid_offset).to_f/least_frequent_id
+      if test.to_i != test
+        # initial_time += lfid_offset
+        # puts "Hopping to #{initial_time}"
+        next
+      end
+      if initial_time > 1068700 && initial_time < 1068794
+        puts "Candidate #{initial_time}"
+      end
 
       passed = true
       ids.each_with_index do |id, offset|
@@ -90,7 +107,7 @@ def main
     raise unless 754018 == AoC.new(["1", "67,7,59,61"]).two
     raise unless 779210 == AoC.new(["1", "67,x,7,59,61"]).two
     raise unless 1261476 == AoC.new(["1", "67,7,x,59,61"]).two
-    raise unless 1202161486 == AoC.new(["1", "1789,37,47,1889"]).two
+    raise unless 1202161486 == AoC.new(["1001", "1789,37,47,1889"]).two
 
     puts "Running main"
     puts "Result: #{runner.two}"
