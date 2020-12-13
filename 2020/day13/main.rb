@@ -85,6 +85,14 @@ def main
   if n == '1'
     puts "Result: #{runner.one}"
   elsif n == '2'
+    raise unless 1068781 == AoC.new(["1", "7,13,x,x,59,x,31,19"]).two
+    raise unless 3417 == AoC.new(["1", "17,x,13,19"]).two
+    raise unless 754018 == AoC.new(["1", "67,7,59,61"]).two
+    raise unless 779210 == AoC.new(["1", "67,x,7,59,61"]).two
+    raise unless 1261476 == AoC.new(["1", "67,7,x,59,61"]).two
+    raise unless 1202161486 == AoC.new(["1", "1789,37,47,1889"]).two
+
+    puts "Running main"
     puts "Result: #{runner.two}"
   end
 end
