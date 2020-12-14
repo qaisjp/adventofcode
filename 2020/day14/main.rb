@@ -10,36 +10,29 @@ class AoC
   Assign = Struct.new(:addr, :val)
 
   def initialize(data)
-    # @data = T.let(data.map(&:to_i), T::Array[Integer])
     @data = data
-
     @mem = {}
-    @combis = []
   end
 
   def one
-
-    mask = ""
     or_mask = 0
     and_mask = 0
 
     @data.each do |line|
       if line.start_with? "mask = "
-        mask = T.let(line.split("= ")[1], String)
+        mask = line.split("= ")[1]
         or_mask = mask.gsub("X", "0").to_i(base=2)
         and_mask = mask.gsub("X", "1").to_i(base=2)
         next
       end
+
       addr, val = line.scanf("mem[%d] = %d")
-      new_val = val
-      new_val |= or_mask
-      new_val &= and_mask
-      @mem[addr] = new_val
+      val |= or_mask
+      val &= and_mask
+      @mem[addr] = val
     end
 
-    @mem.reject {|x| x.nil?}.sum
-
-    # @assigns.each
+    @mem.values.sum
   end
 
   def get_addrs(addr, mask_indices, index_to_vals)
@@ -53,15 +46,13 @@ class AoC
   end
 
   def two
-
-    mask = ""
     or_mask = 0
     random_bit_indices = []
     index_to_vals = []
 
     @data.each do |line|
       if line.start_with? "mask = "
-        mask = T.let(line.split("= ")[1], String)
+        mask = line.split("= ")[1]
         or_mask = mask.gsub("X", "0").to_i(base=2)
         random_bit_indices = mask.enum_for(:scan, /(?=X)/).map { Regexp.last_match.offset(0).first }
         index_to_vals = [1, 0].repeated_permutation(random_bit_indices.size).to_a
@@ -73,12 +64,9 @@ class AoC
       get_addrs(addr.to_s(base=2).rjust(36, '0'), random_bit_indices, index_to_vals).each do |mod_addr|
         @mem[mod_addr.to_i(base=2)] = val
       end
-
     end
 
     @mem.values.sum
-
-    # @assigns.each
   end
 end
 
