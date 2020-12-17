@@ -203,6 +203,7 @@ class AoC
 
     puts "column_to_rules: #{column_to_rules}"
     puts "known_columns_to_rule: #{known_columns_to_rule}"
+    puts "iterations: #{iters}"
 
     nums = []
     known_columns_to_rule.each do |col_id, rule|
