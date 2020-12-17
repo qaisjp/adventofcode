@@ -68,6 +68,11 @@ class AoC
     @grid.fetch(w).fetch(z).fetch(y).fetch(x)
   end
 
+  # sig {params(x: Integer, y: Integer, z: Integer, w: Integer).returns(T::Boolean)}
+  def get_raw(x, y, z, w)
+    @grid[w] && @grid[w][z] && @grid[w][z][y] && @grid[w][z][y][x]
+  end
+
   # sig {params(x: Integer, y: Integer, z: Integer, w: Integer, val: T::Boolean).void}
   def set(x, y, z, w, val)
     resize(x, y, z, w)
@@ -121,7 +126,7 @@ class AoC
       (min_z..max_z).each do |z|
         (min_y..max_y).each do |y|
           (min_x..max_x).each do |x|
-            yield [x, y, z, w], get(x, y, z, w)
+            yield [x, y, z, w], get_raw(x, y, z, w)
           end
         end
       end
