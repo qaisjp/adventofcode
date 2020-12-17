@@ -61,12 +61,12 @@ class AoC
     @offsets = T.let([-1, 1, 0].repeated_permutation(4).reject {|ox, oy, oz, ow| ox == 0 && oy == 0 && oz == 0 && ow == 0}, T::Array[Coord])
   end
 
-  sig {params(coord: Coord).returns(T::Array[Coord])}
+  # sig {params(coord: Coord).returns(T::Array[Coord])}
   def neighbours(coord)
     @offsets.map {|off| [coord.x + off.x, coord.y + off.y, coord.z + off.z, coord.w + off.w]}
   end
 
-  sig {params(x: Integer, y: Integer, z: Integer, w: Integer).void}
+  # sig {params(x: Integer, y: Integer, z: Integer, w: Integer).void}
   def resize(x, y, z, w)
     if x > @max_x
       @max_x = x
@@ -90,7 +90,7 @@ class AoC
     end
   end
 
-  sig {params(x: Integer, y: Integer, z: Integer, w: Integer).returns(T::Boolean)}
+  # sig {params(x: Integer, y: Integer, z: Integer, w: Integer).returns(T::Boolean)}
   def get(x, y, z, w)
     resize(x, y, z, w)
     @grid[w] ||= {}
@@ -100,7 +100,7 @@ class AoC
     @grid.fetch(w).fetch(z).fetch(y).fetch(x)
   end
 
-  sig {params(x: Integer, y: Integer, z: Integer, w: Integer, val: T::Boolean).void}
+  # sig {params(x: Integer, y: Integer, z: Integer, w: Integer, val: T::Boolean).void}
   def set(x, y, z, w, val)
     resize(x, y, z, w)
     @grid[w] ||= {}
@@ -109,7 +109,7 @@ class AoC
     @grid.fetch(w).fetch(z).fetch(y)[x] = val
   end
 
-  sig {params(data: T::Array[String]).void}
+  # sig {params(data: T::Array[String]).void}
   def read_2d_grid!(data)
     data.each_with_index do |xs, y|
       xs.chars.each_with_index do |char, x|
@@ -120,7 +120,7 @@ class AoC
   end
 
   # Todo
-  sig {void}
+  # sig {void}
   def print_2d_grid!
     (@min_z..@max_z).each do |z|
       puts "\nz=#{z}"
@@ -135,7 +135,7 @@ class AoC
 
   # Each call to each_coord yields for the known range of values, and 1 layer around.
   # This has the side of effect for enlarging the grid every time by 1, every time this is called!
-  sig {params(blk: T.proc.params(coord: Coord, val: T::Boolean).void).void}
+  # sig {params(blk: T.proc.params(coord: Coord, val: T::Boolean).void).void}
   def each_coord(&blk)
     # Consider the bordering layer
     # We pre-calculate this, as intermediate get calls will clobber the instance variables to an inconsistent state
