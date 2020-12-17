@@ -3,38 +3,6 @@
 
 require 'sorbet-runtime'
 
-class Array
-  extend T::Sig
-
-  def x; T.unsafe(self)[0]; end
-  def x=(v); T.unsafe(self)[0] = v; end
-
-  def y; T.unsafe(self)[1]; end
-  def y=(v); T.unsafe(self)[1] = v; end
-
-  def z; T.unsafe(self)[2]; end
-  def z=(v); T.unsafe(self)[2] = v; end
-
-  def w; T.unsafe(self)[3]; end
-  def w=(v); T.unsafe(self)[3] = v; end
-end
-
-module T::Array
-  extend T::Sig
-
-  def x; T.unsafe(self)[0]; end
-  def x=(v); T.unsafe(self)[0] = v; end
-
-  def y; T.unsafe(self)[1]; end
-  def y=(v); T.unsafe(self)[1] = v; end
-
-  def z; T.unsafe(self)[2]; end
-  def z=(v); T.unsafe(self)[2] = v; end
-
-  def w; T.unsafe(self)[3]; end
-  def w=(v); T.unsafe(self)[3] = v; end
-end
-
 Grid = T.type_alias {T::Hash[Integer, T::Hash[Integer, T::Hash[Integer, T::Hash[Integer, T::Boolean]]]]}
 Coord = T.type_alias {[Integer, Integer, Integer, Integer]}
 
@@ -63,7 +31,7 @@ class AoC
 
   # sig {params(coord: Coord).returns(T::Array[Coord])}
   def neighbours(coord)
-    @offsets.map {|off| [coord.x + off.x, coord.y + off.y, coord.z + off.z, coord.w + off.w]}
+    @offsets.map {|off| [coord[0] + off[0], coord[1] + off[1], coord[2] + off[2], coord[3] + off[3]]}
   end
 
   # sig {params(x: Integer, y: Integer, z: Integer, w: Integer).void}
@@ -163,7 +131,7 @@ class AoC
   sig{params(changes: T::Hash[Coord, T::Boolean]).void}
   def apply_changes(changes)
     changes.each do |coord, val|
-      set(coord.x, coord.y, coord.z, coord.w, val)
+      set(coord[0], coord[1], coord[2], coord[3], val)
     end
   end
 
@@ -181,7 +149,7 @@ class AoC
       each_coord do |coord, val|
         # puts "Coord #{coord} is #{val}. Checking neighbours..."
         active_neighbours = neighbours(coord).count do |nbor|
-          active = get(nbor.x, nbor.y, nbor.z, nbor.w)
+          active = get(nbor[0], nbor[1], nbor[2], nbor[3])
           # puts "- Neighbour #{nbor} is #{active}"
           active
         end
