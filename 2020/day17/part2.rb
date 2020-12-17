@@ -107,12 +107,10 @@ class AoC
   end
 
   # Each call to each_coord yields for the known range of values, and 1 layer around.
-  # This has the side of effect for enlarging the grid every time by 1, every time this is called!
   # sig {params(blk: T.proc.params(coord: Coord, val: T::Boolean).void).void}
   def each_coord(&blk)
     # Consider the bordering layer
-    # We pre-calculate this, as intermediate get calls will clobber the instance variables to an inconsistent state
-    # This state is safe at the end of each_coord
+    # We pre-calculate this for reasons described in part 1, but those reasons don't apply in part 2 (because we added get_raw)
     min_x = @min_x - 1
     min_y = @min_y - 1
     min_z = @min_z - 1
