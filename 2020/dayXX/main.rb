@@ -1,9 +1,12 @@
 # frozen_string_literal: true
+# typed: true
 
 require 'sorbet-runtime'
 
 # AoC
 class AoC
+  extend T::Sig
+
   def initialize(data)
     # @data = T.let(data.map(&:to_i), T::Array[Integer])
     @data = T.let(data, T::Array[String])
