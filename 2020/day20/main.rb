@@ -15,40 +15,29 @@ class String
 end
 
 class Array
-  def set_rotate_context(n)
-    @context = 4.times.to_a.rotate(-n)
-  end
   def top
-    i = @context[0]
-    self[i]
+    self[0]
   end
   def right
-    i = @context[1]
-    self[i]
+    self[1]
   end
   def bottom
-    i = @context[2]
-    self[i]
+    self[2]
   end
   def left
-    i = @context[3]
-    self[i]
+    self[3]
   end
   def top=(v)
-    i = @context[0]
-    self[i] = v
+    self[0] = v
   end
   def right=(v)
-    i = @context[1]
-    self[i] = v
+    self[1] = v
   end
   def bottom=(v)
-    i = @context[2]
-    self[i] = v
+    self[2] = v
   end
   def left=(v)
-    i = @context[3]
-    self[i] = v
+    self[3] = v
   end
 end
 
@@ -82,8 +71,6 @@ class AoC
       left = rows.map(&:first).join("")
 
       @tile_links[id] = [nil, nil, nil, nil]
-      @tile_links[id].set_rotate_context(0)
-
       @tile_ops[id] = []
 
       [id, [top, right, bottom, left]]
@@ -96,85 +83,82 @@ class AoC
       links = @tile_links[tile_id]
       next if links.compact == 4
 
-      4.times do |rotate_index|
-        t, r, b, l = edge_strs.rotate(rotate_index)
-        links.set_rotate_context(rotate_index)
+      t, r, b, l = edge_strs
 
-        @tile_edges.each do |other_id, other_strs|
-          next if other_id == tile_id
+      @tile_edges.each do |other_id, other_strs|
+        next if other_id == tile_id
 
-          other_links = @tile_links[other_id]
-          next if other_links.compact == 4
+        other_links = @tile_links[other_id]
+        next if other_links.compact == 4
 
-          to, ro, bo, lo = other_strs
+        to, ro, bo, lo = other_strs
 
-          postop = nil
+        postop = nil
 
-          # our top is their bottom
-          # our right is their left
-          # our bottom is their top
-          # our left is their right
-          if t == bo
-            links.top = other_id
-            other_links.bottom = tile_id
-          elsif r == lo
-            links.right = other_id
-            other_links.left = tile_id
-          elsif b == to
-            links.bottom = other_id
-            other_links.top = tile_id
-          elsif l == ro
-            links.left = other_id
-            other_links.right = tile_id
+        # our top is their bottom
+        # our right is their left
+        # our bottom is their top
+        # our left is their right
+        if t == bo
+          links.top = other_id
+          other_links.bottom = tile_id
+        elsif r == lo
+          links.right = other_id
+          other_links.left = tile_id
+        elsif b == to
+          links.bottom = other_id
+          other_links.top = tile_id
+        elsif l == ro
+          links.left = other_id
+          other_links.right = tile_id
 
-          # when you flip this one vertically,
-          # - your top matches with another top
-          # - your right.reverse matches with another left
-          # - your bottom matches with another bottom
-          # - your left.reverse matches with another right
-          elsif t == to
-            postop = 'vertical'
-            links.top = other_id
-            other_links.top = tile_id
-          elsif r.reverse == lo
-            postop = 'vertical'
-            links.right = other_id
-            other_links.left = tile_id
-          elsif b == bo
-            postop = 'vertical'
-            links.bottom = other_id
-            other_links.bottom = tile_id
-          elsif l.reverse == ro
-            postop = 'vertical'
-            links.left = other_id
-            other_links.right = tile_id
+        # when you flip this one vertically,
+        # - your top matches with another top
+        # - your right.reverse matches with another left
+        # - your bottom matches with another bottom
+        # - your left.reverse matches with another right
+        elsif t == to
+          postop = 'vertical'
+          links.top = other_id
+          other_links.top = tile_id
+        elsif r.reverse == lo
+          postop = 'vertical'
+          links.right = other_id
+          other_links.left = tile_id
+        elsif b == bo
+          postop = 'vertical'
+          links.bottom = other_id
+          other_links.bottom = tile_id
+        elsif l.reverse == ro
+          postop = 'vertical'
+          links.left = other_id
+          other_links.right = tile_id
 
-          # when you flip horizontally,
-          # - your top.reverse matches with another bottom
-          # - your right matches with another right
-          # - your bottom.reverse matches with another top
-          # - your left matches with another left
-          elsif t.reverse == bo
-            postop = 'horizontal'
-            links.top = other_id
-            other_links.bottom = tile_id
-          elsif r == ro
-            postop = 'horizontal'
-            links.right = other_id
-            other_links.right = tile_id
-          elsif b.reverse == to
-            postop = 'horizontal'
-            links.bottom = other_id
-            other_links.top = tile_id
-          elsif l == lo
-            postop = 'horizontal'
-            links.left = other_id
-            other_links.left = tile_id
-          end
+        # when you flip horizontally,
+        # - your top.reverse matches with another bottom
+        # - your right matches with another right
+        # - your bottom.reverse matches with another top
+        # - your left matches with another left
+        elsif t.reverse == bo
+          postop = 'horizontal'
+          links.top = other_id
+          other_links.bottom = tile_id
+        elsif r == ro
+          postop = 'horizontal'
+          links.right = other_id
+          other_links.right = tile_id
+        elsif b.reverse == to
+          postop = 'horizontal'
+          links.bottom = other_id
+          other_links.top = tile_id
+        elsif l == lo
+          postop = 'horizontal'
+          links.left = other_id
+          other_links.left = tile_id
+        end
 
-          if postop
-            @tile_ops[tile_id] << postop
-          end
+        if postop
+          @tile_ops[tile_id] << postop
         end
       end
     end
