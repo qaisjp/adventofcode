@@ -151,14 +151,14 @@ class AoC
         # our bottom is their top
         # our left is their right
         if our_edge == other_edges[their_direction]
-          puts "FOUND1: rot(#{rotate_index}), flip(#{flip1}, #{flip2})"
-          puts "#{their_id} is placed #{dir_word(their_direction, opp: true)} to #{our_id}"
+          # puts "FOUND1: rot(#{rotate_index}), flip(#{flip1}, #{flip2})"
+          # puts "#{their_id} is placed #{dir_word(their_direction, opp: true)} to #{our_id}"
           @tile_edges[their_id] = other_edges
           return true
         elsif our_edge == other_edges2[their_direction]
-          puts "FOUND2: flip(#{flip1}, #{flip2}), rot(#{rotate_index})"
+          # puts "FOUND2: flip(#{flip1}, #{flip2}), rot(#{rotate_index})"
           @tile_edges[their_id] = other_edges2
-          puts "#{their_id} is placed #{dir_word(their_direction, opp: true)} to #{our_id}"
+          # puts "#{their_id} is placed #{dir_word(their_direction, opp: true)} to #{our_id}"
           return true
         end
       end
@@ -168,7 +168,7 @@ class AoC
   end
 
   def bruteforce_find(our_id:, direction:)
-    puts "\n## Looking #{dir_word(direction)} of #{our_id}\n\n"
+    # puts "\n## Looking #{dir_word(direction)} of #{our_id}\n\n"
     our_edge = @tile_edges[our_id][direction]
     their_direction = @opp_directions[direction]
 
@@ -210,21 +210,21 @@ class AoC
 
       pos = @positions_to_process.shift
       tile_id = @pos_to_tile[pos]
-      puts "\n############################\n# Currently #{tile_id} is at #{pos}\n############################"
+      # puts "\n############################\n# Currently #{tile_id} is at #{pos}\n############################"
 
       # Look in each direction
       @directions.each do |direction|
         try_pos = pos_direction(pos, direction)
         # Don't look again if we already found something there
         if (tile = @pos_to_tile[try_pos])
-          puts "- Not looking #{dir_word direction} because tile #{tile} is there."
+          # puts "- Not looking #{dir_word direction} because tile #{tile} is there."
           next
         end
         found_tile = bruteforce_find(our_id: tile_id, direction: direction)
         if found_tile
           set_tile_pos(found_tile, try_pos)
           @tiles_to_search.delete(found_tile)
-          puts "\n- Placing #{found_tile} at #{try_pos}"
+          # puts "\n- Placing #{found_tile} at #{try_pos}"
           @positions_to_process << try_pos
         end
       end
