@@ -135,7 +135,7 @@ class AoC
       @free_tiles << id
     end
 
-    opposite_direction = [0, 1, 2, 3]
+    opposite_direction = [0, 1, 2, 3].rotate(2)
     direction_words = ["top___", "right_", "bottom", "left__"]
 
     pos = 0 + 0i
@@ -192,11 +192,11 @@ class AoC
             if our_edge == other_edges[their_direction]
               puts "FOUND1: rot(#{rotate_index}, flip(#{flip1}, #{flip2})"
               puts "#{their_id} is placed next to #{tile_id}"
-              # @tile_edges[their_id] = other_edges  # this should be here but it breaks things
+              @tile_edges[their_id] = other_edges  # this should be here but it breaks things
               found = their_id
             elsif our_edge == other_edges2[their_direction]
               puts "FOUND2: flip(#{flip1}, #{flip2}), rot(#{rotate_index}"
-              # @tile_edges[their_id] = other_edges2 # this should be here but it breaks things
+              @tile_edges[their_id] = other_edges2 # this should be here but it breaks things
               puts "#{their_id} is placed next to #{tile_id}"
               found = their_id
             end
