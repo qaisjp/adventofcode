@@ -72,10 +72,12 @@ class AoC
 
   def initialize(data)
     @tile_rows = {}
+    @original_tile_rows = {}
     data.split("\n\n").each do |tiles|
       rows = tiles.split("\n")
       key = rows[0].scanf("Tile %d:")[0]
       @tile_rows[key] = rows[1..]
+      @original_tile_rows[key] = rows[1..]
     end
 
     # @data = T.let(data.map(&:to_i), T::Array[Integer])
@@ -125,7 +127,6 @@ class AoC
 
   def build_tile_edges!
     @tile_edges = @tile_rows.map do |id, rows|
-
       [id, get_tile_edges(rows)]
     end.to_h
   end
@@ -146,26 +147,29 @@ class AoC
         # puts "\n\nReal tile:\n\n"
         # puts @tile_rows[their_id].join("\n")
 
-        other_edges = @tile_edges[their_id].rotate(rotate_index).flip_both(flip1, flip2)
+        # other_edges = @tile_edges[their_id].rotate(rotate_index).flip_both(flip1, flip2)
 
         other_tile = flip_tile(flip_tile(rotate_tile(@tile_rows[their_id], rotate_index), flip1), flip2)
         real_other_edges = get_tile_edges(other_tile)
         # puts "#{rotate_index}, #{flip1}, #{flip2} - #{other_edges == real_other_edges} #{other_edges}, #{real_other_edges}"
 
-        rotated_edges = @tile_edges[their_id].rotate(rotate_index)
-        full_rotated_edges = get_tile_edges(rotate_tile(@tile_rows[their_id], rotate_index))
-        puts "#{rotate_index}, #{flip1}, #{flip2} - #{rotated_edges == full_rotated_edges} - edges: #{rotated_edges}, full_rotated_edges: #{full_rotated_edges}"
+        # rotated_edges = @tile_edges[their_id].rotate(rotate_index)
+        # full_rotated_edges = get_tile_edges(rotate_tile(@tile_rows[their_id], rotate_index))
+        # puts "#{rotate_index}, #{flip1}, #{flip2} - #{rotated_edges == full_rotated_edges} - edges: #{rotated_edges}, full_rotated_edges: #{full_rotated_edges}"
+
+
         # puts "\n\nReal tile:\n\n"
         # puts @tile_edges[their_id].join("\n")
         # exit(1)
 
 
-        if our_edge == other_edges[their_direction]
+        if our_edge == real_other_edges[their_direction]
           # puts "FOUND1: rot(#{rotate_index}), flip(#{flip1}, #{flip2})"
           # puts "#{their_id} is placed #{dir_word(their_direction, opp: true)} to #{our_id}"
-          @tile_edges[their_id] = other_edges
+          @tile_edges[their_id] = real_other_edges
           @tile_ops[their_id] = [rotate_index, flip1, flip2]
-          puts "ops for #{their_id} are #{rotate_index}, #{flip1}, #{flip2}"
+          @tile_rows[their_id] = other_tile
+          # puts "ops for #{their_id} are #{rotate_index}, #{flip1}, #{flip2}"
           return true
         end
       end
@@ -235,9 +239,9 @@ class AoC
 
         found_tile = bruteforce_find(our_id: tile_id, direction: direction)
         if found_tile
-          op_tree = @op_tree[tile_id].dup
-          op_tree << @tile_ops[found_tile]
-          @op_tree[found_tile] = op_tree
+          # op_tree = @op_tree[tile_id].dup
+          # op_tree << @tile_ops[found_tile]
+          # @op_tree[found_tile] = op_tree
 
           set_tile_pos(found_tile, try_pos)
           @tiles_to_search.delete(found_tile)
@@ -312,39 +316,42 @@ class AoC
 
   def apply_tile_ops!
     @tile_rows = @tile_rows.map do |id, rows|
-      puts "op tree for #{id} are #{@op_tree[id]}"
-      @op_tree[id].each do |ops|
+      ops = @tile_ops[id]
+      # puts "op tree for #{id} are #{@op_tree[id]}"
+      # @op_tree[id].each do |ops|
         puts "applying ops for #{id} are #{ops}"
         rotate_amount, flip1, flip2 = ops
         rows = rotate_tile(rows, rotate_amount)
         rows = flip_tile(flip_tile(rows, flip1), flip2)
-      end
+      # end
 
       [id, rows]
     end.to_h
   end
 
-  def print_tile(id)
+  def print_tile(id, orig: false, rows: nil)
     if id.is_a? Complex
       id = @pos_to_tile[id]
     elsif !id.is_a?(Integer)
       raise "print_tile got #{id.class}"
     end
 
-    rows = @tile_rows[id]
+    rows ||= (orig ? @original_tile_rows : @tile_rows)[id]
+
     puts "[Tile #{id}]"
     puts rows.join("\n")
   end
 
-  def two
+  def two_build_image
     # Build everything from part 1
-    one
+    puts "Part1: #{one}"
 
     # unset some things from part1
     remove_instance_variable :@positions_to_process
     remove_instance_variable :@tiles_to_search
 
     # print layout
+    puts
     (@min_y..@max_y).each do |y|
       (@min_x..@max_x).each do |x|
         tile_id = @pos_to_tile[Complex(x, y)]
@@ -352,16 +359,110 @@ class AoC
       end
       puts
     end
-
+    puts
 
     # make all tiles correct
     trim_all_tiles!
-    print_tile(0+0i)
-    apply_tile_ops!
+    # print_tile(0+0i, orig: true)
+    # apply_tile_ops!
 
+    # I have no idea why I need to do this
     @tile_rows.each do |id, rows|
-      print_tile(id)
+      @tile_rows[id] = flip_tile(@tile_rows[id], 'vert')
+      # print_tile(id, rows: flip_tile(@tile_rows[id], 'vert'))
     end
+    puts 'All tile have been flipped vertically :+1:'
+
+    lines_per_tile = @tile_rows[@pos_to_tile[0 + 0i]].size
+    puts "There are #{lines_per_tile} lines per tile.\n\n"
+
+    # print layout
+    image = []
+    (@min_y..@max_y).each do |y|
+      this_rows_lines = []
+      8.times do |line_y|
+        ys = []
+        (@min_x..@max_x).each do |x|
+          tile_id = @pos_to_tile[Complex(x, y)]
+          ys << @tile_rows[tile_id][line_y]
+          # print "#{tile_id} "
+        end
+        this_rows_lines << ys
+      end
+      # puts this_rows_lines.map{|x| x.join(" ")}.join("\n")
+      image << this_rows_lines.map{|x| x.join}
+      # puts
+      # break
+    end
+
+    image.flatten!
+    puts
+    puts
+    puts image.join("\n")
+    image
+  end
+
+  def get_image
+    img_path = $filename + ".image"
+    if File.file?(img_path)
+      return IO.binread(img_path).split
+    end
+
+    image = two_build_image
+    File.write(img_path, image.join("\n")+"\n")
+    image
+  end
+
+  def try_shape(shape)
+    image = @image
+
+    pound_offsets = []
+    shape.each_with_index do |row, y|
+      row.chars.each_with_index do |char, x|
+        if char == '#'
+          pound_offsets << [x, y]
+        end
+      end
+    end
+
+    shape_width = shape.first.size
+    image_width = image.first.size
+    x_moves = image_width - shape_width + 1
+    y_moves = image.size - shape.size + 1
+    puts "Need to move right #{x_moves}, down #{y_moves}"
+
+    y_moves.times do |y_base|
+      x_moves.times do |x_base|
+        base = Complex(x_base, y_base)
+        should_print = base.x == 2 && base.y == 2
+        found = true
+        pound_offsets.each do |offset|
+          coord = base + Complex(*offset)
+          char = image[coord.y][coord.x]
+          puts "#{coord} is #{char}" if should_print
+          if char != '#'
+            found = false
+          end
+        end
+
+        if found
+          puts "Found at #{x_base}, #{y_base}"
+        end
+      end
+    end
+  end
+
+  def two
+    @image = get_image
+    puts @image.join("\n")
+
+    shape = [
+      "                  # ",
+      "#    ##    ##    ###",
+      " #  #  #  #  #  #   "
+    ]
+
+    try_shape(shape)
 
     # tile_id = @pos_to_tile[Complex(@min_x, @min_y)]
     # puts "topleft is #{tile_id}"
@@ -420,6 +521,7 @@ end
 
 def main
   n = ARGV.shift
+  $filename = ARGV.first
   runner = AoC.new ARGF.read
 
   if n == '1'
