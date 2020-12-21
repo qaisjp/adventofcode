@@ -24,7 +24,7 @@ class AoC
   end
 
   def one
-    # Count how many times an ingredient appears in the puzzle input
+    # Get full list of ingredients, including duplicates
     ingredients = []
     @food.each do |food|
       ingredients += food.ingredients
@@ -42,9 +42,11 @@ class AoC
       end
     end
 
+    # For each allergen, check if we think it's contained in exactly 1 ingredient
+    # If so, remove that allergen from every ingredient list
+    # Keep doing that until we checked all we can't delete any more
     known_a_to_i = {}
-    deleted = true
-    while deleted
+    loop do
       deleted = false
       a_to_ings.each do |allergen, ings|
         next if ings.size != 1
@@ -57,13 +59,14 @@ class AoC
           deleted = true
         end
       end
+
+      break unless deleted
     end
 
     never = ingredients.to_set - known_a_to_i.values
     part1 = ingredients.count {|i| never.include? i}
 
-    part2 = known_a_to_i
-    part2 = part2.keys.sort.map {|k| known_a_to_i[k]}.join(",")
+    part2 = known_a_to_i.keys.sort.map {|k| known_a_to_i[k]}.join(",")
 
     [part1, part2]
   end
