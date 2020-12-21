@@ -80,10 +80,7 @@ def main
   n = ARGV.shift
   runner = AoC.new ARGF.readlines.to_a
 
-  if n == '1'
-    puts "Result: #{runner.one}"
-  elsif n == '2'
-    puts "Result: #{runner.two}"
-  end
+  part1, part2 = runner.one
+  puts "Part1: #{part1}\nPart2: #{part2}"
 end
 main
