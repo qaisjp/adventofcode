@@ -439,16 +439,24 @@ class AoC
         pound_offsets.each do |offset|
           coord = base + Complex(*offset)
           char = image[coord.y][coord.x]
-          puts "#{coord} is #{char}" if should_print
+          # puts "#{coord} is #{char}" if should_print
           if char != '#'
             found = false
           end
         end
 
         if found
-          puts "Found at #{x_base}, #{y_base}"
+          puts "Found at #{base}"
+          write_os(base, pound_offsets)
         end
       end
+    end
+  end
+
+  def write_os(base, pound_offsets)
+    pound_offsets.each do |offset|
+      coord = base + Complex(*offset)
+      @image[coord.y][coord.x] = 'O'
     end
   end
 
@@ -462,7 +470,18 @@ class AoC
       " #  #  #  #  #  #   "
     ]
 
-    try_shape(shape)
+    4.times do |rotate_index|
+      # Try all pairs of mirroring
+      ["none", "vert", "horz"].repeated_combination(2).each do |flip1, flip2|
+        # puts "\n\nReal tile:\n\n"
+        # puts @tile_rows[their_id].join("\n")
+
+        # other_edges = @tile_edges[their_id].rotate(rotate_index).flip_both(flip1, flip2)
+
+        modified_shape = flip_tile(flip_tile(rotate_tile(shape, rotate_index), flip1), flip2)
+        try_shape(modified_shape)
+      end
+    end
 
     # tile_id = @pos_to_tile[Complex(@min_x, @min_y)]
     # puts "topleft is #{tile_id}"
@@ -487,6 +506,7 @@ class AoC
     # end
 
     # puts "#{image.join("\n\n")}"
+    @image.join("\n").count("#")
   end
 
   def test_tile_ops
