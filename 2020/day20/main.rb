@@ -143,11 +143,22 @@ class AoC
     4.times do |rotate_index|
       # Try all pairs of mirroring
       ["none", "vert", "horz"].repeated_combination(2).each do |flip1, flip2|
+        # puts "\n\nReal tile:\n\n"
+        # puts @tile_rows[their_id].join("\n")
+
         other_edges = @tile_edges[their_id].rotate(rotate_index).flip_both(flip1, flip2)
 
         other_tile = flip_tile(flip_tile(rotate_tile(@tile_rows[their_id], rotate_index), flip1), flip2)
         real_other_edges = get_tile_edges(other_tile)
-        puts "#{rotate_index}, #{flip1}, #{flip2} - #{other_edges == real_other_edges} #{other_edges}, #{real_other_edges}"
+        # puts "#{rotate_index}, #{flip1}, #{flip2} - #{other_edges == real_other_edges} #{other_edges}, #{real_other_edges}"
+
+        rotated_edges = @tile_edges[their_id].rotate(rotate_index)
+        full_rotated_edges = get_tile_edges(rotate_tile(@tile_rows[their_id], rotate_index))
+        puts "#{rotate_index}, #{flip1}, #{flip2} - #{rotated_edges == full_rotated_edges} - edges: #{rotated_edges}, full_rotated_edges: #{full_rotated_edges}"
+        # puts "\n\nReal tile:\n\n"
+        # puts @tile_edges[their_id].join("\n")
+        # exit(1)
+
 
         if our_edge == other_edges[their_direction]
           # puts "FOUND1: rot(#{rotate_index}), flip(#{flip1}, #{flip2})"
