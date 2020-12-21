@@ -125,12 +125,17 @@ class AoC
 
   def build_tile_edges!
     @tile_edges = @tile_rows.map do |id, rows|
-      top = rows[0]
-      right = rows.map(&:last).join("")
-      bottom = rows[-1]
-      left = rows.map(&:first).join("")
-      [id, [top, right, bottom, left]]
+
+      [id, get_tile_edges(rows)]
     end.to_h
+  end
+
+  def get_tile_edges(rows)
+    top = rows[0]
+    right = rows.map(&:last).join("")
+    bottom = rows[-1]
+    left = rows.map(&:first).join("")
+    [top, right, bottom, left]
   end
 
   def does_tile_fit(our_id:, our_edge:, their_id:, their_direction:)
@@ -138,27 +143,18 @@ class AoC
     4.times do |rotate_index|
       # Try all pairs of mirroring
       ["none", "vert", "horz"].repeated_combination(2).each do |flip1, flip2|
-
         other_edges = @tile_edges[their_id].rotate(rotate_index).flip_both(flip1, flip2)
-        other_edges2 = @tile_edges[their_id].flip_both(flip1, flip2).rotate(rotate_index)
 
-        # if tile_id == 1427 && their_id == 1489
-        #   puts "rot(#{rotate_index}), flip(#{flip1}, #{flip2}): #{their_word} of #{their_id} is #{other_edges[their_direction]} or #{other_edges2[their_direction]}"
-        # end
+        other_tile = flip_tile(flip_tile(rotate_tile(@tile_rows[their_id], rotate_index), flip1), flip2)
+        real_other_edges = get_tile_edges(other_tile)
+        puts "#{rotate_index}, #{flip1}, #{flip2} - #{other_edges == real_other_edges} #{other_edges}, #{real_other_edges}"
 
-        # our top is their bottom
-        # our right is their left
-        # our bottom is their top
-        # our left is their right
         if our_edge == other_edges[their_direction]
           # puts "FOUND1: rot(#{rotate_index}), flip(#{flip1}, #{flip2})"
           # puts "#{their_id} is placed #{dir_word(their_direction, opp: true)} to #{our_id}"
           @tile_edges[their_id] = other_edges
-          return true
-        elsif our_edge == other_edges2[their_direction]
-          # puts "FOUND2: flip(#{flip1}, #{flip2}), rot(#{rotate_index})"
-          @tile_edges[their_id] = other_edges2
-          # puts "#{their_id} is placed #{dir_word(their_direction, opp: true)} to #{our_id}"
+          @tile_ops[their_id] = [rotate_index, flip1, flip2]
+          puts "ops for #{their_id} are #{rotate_index}, #{flip1}, #{flip2}"
           return true
         end
       end
@@ -188,19 +184,24 @@ class AoC
 
   def one
     tile_count = @tile_rows.size
-    edge_width = Math.sqrt(tile_count)
-    puts "There are #{tile_count} tiles, edge_width is #{edge_width}"
+    tiles_per_row = Math.sqrt(tile_count).to_i
+    puts "There are #{tile_count} tiles, tiles_per_row is #{tiles_per_row}"
 
     @tile_ops = {}
     @tiles_to_search = []
+    @op_tree = {}
     build_tile_edges!
     @tile_rows.map do |id, _|
       @tiles_to_search << id
       @tile_ops[id] = []
+
     end
 
     pos = 0 + 0i
-    set_tile_pos(@tiles_to_search.shift, pos)
+    first_tile = @tiles_to_search.shift
+    set_tile_pos(first_tile, pos)
+    @tile_ops[first_tile] = [0, 'none', 'none']
+    @op_tree[first_tile] = []
 
     iters = 0
     @positions_to_process = [0 + 0i]
@@ -220,8 +221,13 @@ class AoC
           # puts "- Not looking #{dir_word direction} because tile #{tile} is there."
           next
         end
+
         found_tile = bruteforce_find(our_id: tile_id, direction: direction)
         if found_tile
+          op_tree = @op_tree[tile_id].dup
+          op_tree << @tile_ops[found_tile]
+          @op_tree[found_tile] = op_tree
+
           set_tile_pos(found_tile, try_pos)
           @tiles_to_search.delete(found_tile)
           # puts "\n- Placing #{found_tile} at #{try_pos}"
@@ -240,8 +246,164 @@ class AoC
     [corners, corners.inject(:*)]
   end
 
-  def two
+  # trim outermost edge
+  def trim_all_tiles!
+    @tile_rows = @tile_rows.map do |id, rows|
+      # cut top and bottom
+      rows = rows[1..-2]
 
+      # cut first and last
+      rows = rows.map {|str| str[1..-2] }
+
+      [id, rows]
+    end.to_h
+  end
+
+
+  def flip_tile(rows, direction)
+    if direction == "horz"
+      return rows.map(&:reverse)
+    elsif direction == "vert"
+      return rows.reverse
+    elsif direction == 'none'
+      return rows.dup
+    else
+      raise direction
+    end
+
+    result = []
+    size = rows.size
+    size.times { |y|
+      result[y] = []
+      size.times { |x|
+        result[y][x] = rows[y][size - 1 - x]
+      }
+    }
+
+    result.map!(&:join)
+
+    result
+  end
+
+  def rotate_tile(rows, amount)
+    rows = rows.dup
+    if amount == 0
+      return rows
+    end
+
+    rows = rows.map(&:chars)
+    amount.times do
+      rows = rows.transpose.map(&:reverse)
+    end
+    rows.map! &:join
+    rows
+  end
+
+  def apply_tile_ops!
+    @tile_rows = @tile_rows.map do |id, rows|
+      puts "op tree for #{id} are #{@op_tree[id]}"
+      @op_tree[id].each do |ops|
+        puts "applying ops for #{id} are #{ops}"
+        rotate_amount, flip1, flip2 = ops
+        rows = rotate_tile(rows, rotate_amount)
+        rows = flip_tile(flip_tile(rows, flip1), flip2)
+      end
+
+      [id, rows]
+    end.to_h
+  end
+
+  def print_tile(id)
+    if id.is_a? Complex
+      id = @pos_to_tile[id]
+    elsif !id.is_a?(Integer)
+      raise "print_tile got #{id.class}"
+    end
+
+    rows = @tile_rows[id]
+    puts "[Tile #{id}]"
+    puts rows.join("\n")
+  end
+
+  def two
+    # Build everything from part 1
+    one
+
+    # unset some things from part1
+    remove_instance_variable :@positions_to_process
+    remove_instance_variable :@tiles_to_search
+
+    # print layout
+    (@min_y..@max_y).each do |y|
+      (@min_x..@max_x).each do |x|
+        tile_id = @pos_to_tile[Complex(x, y)]
+        print "#{tile_id} "
+      end
+      puts
+    end
+
+
+    # make all tiles correct
+    trim_all_tiles!
+    print_tile(0+0i)
+    apply_tile_ops!
+
+    @tile_rows.each do |id, rows|
+      print_tile(id)
+    end
+
+    # tile_id = @pos_to_tile[Complex(@min_x, @min_y)]
+    # puts "topleft is #{tile_id}"
+    # puts @tile_rows[tile_id].join("\n")
+
+    # image = []
+    # edge_width = @tile_rows.values.first.size
+    # (@min_y..@max_y).each do |y|
+    #   rows = edge_width.times.map {[]}
+
+    #   (@min_x..@max_x).each do |x|
+    #     tile_id = @pos_to_tile[Complex(x, y)]
+    #     tile_rows = @tile_rows[tile_id]
+    #     tile_rows.each_with_index {|row, i| rows[i] << row}
+    #     # print "#{tile_id} "
+    #   end
+    #   puts
+    #   # first = tiles_this_row.shift
+    #   puts "#{rows}"
+    #   # puts "row #{y} is\n#{row}"
+    #   # image << first.zip(*tiles_this_row).join(" ")
+    # end
+
+    # puts "#{image.join("\n\n")}"
+  end
+
+  def test_tile_ops
+    tile = ["abc", "def", "ghi"]
+    puts "tile: \n#{tile.join("\n")}"
+
+    puts "\nflip horz: \n#{flip_tile(tile, "horz").join("\n")}"
+    puts "\nflip vert: \n#{flip_tile(tile, "vert").join("\n")}"
+
+    puts "\nrotate_tile(tile, 0): \n#{rotate_tile(tile, 0).join("\n")}"
+    puts "\nrotate_tile(tile, 1): \n#{rotate_tile(tile, 1).join("\n")}"
+    puts "\nrotate_tile(tile, 2): \n#{rotate_tile(tile, 2).join("\n")}"
+    puts "\nrotate_tile(tile, 3): \n#{rotate_tile(tile, 3).join("\n")}"
+
+    tile = <<~EOF.strip.split("\n")
+      #.#.#####.
+      .#..######
+      ..#.......
+      ######....
+      ####.#..#.
+      .#...#.##.
+      #.#####.##
+      ..#.###...
+      ..#.......
+      ..#.###...
+    EOF
+
+    puts "\n\n\n\n\nOriginal:"
+    puts tile
   end
 end
 
