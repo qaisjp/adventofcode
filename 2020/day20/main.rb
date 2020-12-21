@@ -80,9 +80,6 @@ class AoC
       @original_tile_rows[key] = rows[1..]
     end
 
-    # @data = T.let(data.map(&:to_i), T::Array[Integer])
-    # @data = T.let(data, T::Array[String])
-
     @min_x = 0
     @min_y = 0
     @max_x = 0
@@ -144,24 +141,8 @@ class AoC
     4.times do |rotate_index|
       # Try all pairs of mirroring
       ["none", "vert", "horz"].repeated_combination(2).each do |flip1, flip2|
-        # puts "\n\nReal tile:\n\n"
-        # puts @tile_rows[their_id].join("\n")
-
-        # other_edges = @tile_edges[their_id].rotate(rotate_index).flip_both(flip1, flip2)
-
         other_tile = flip_tile(flip_tile(rotate_tile(@tile_rows[their_id], rotate_index), flip1), flip2)
         real_other_edges = get_tile_edges(other_tile)
-        # puts "#{rotate_index}, #{flip1}, #{flip2} - #{other_edges == real_other_edges} #{other_edges}, #{real_other_edges}"
-
-        # rotated_edges = @tile_edges[their_id].rotate(rotate_index)
-        # full_rotated_edges = get_tile_edges(rotate_tile(@tile_rows[their_id], rotate_index))
-        # puts "#{rotate_index}, #{flip1}, #{flip2} - #{rotated_edges == full_rotated_edges} - edges: #{rotated_edges}, full_rotated_edges: #{full_rotated_edges}"
-
-
-        # puts "\n\nReal tile:\n\n"
-        # puts @tile_edges[their_id].join("\n")
-        # exit(1)
-
 
         if our_edge == real_other_edges[their_direction]
           # puts "FOUND1: rot(#{rotate_index}), flip(#{flip1}, #{flip2})"
@@ -209,7 +190,6 @@ class AoC
     @tile_rows.map do |id, _|
       @tiles_to_search << id
       @tile_ops[id] = []
-
     end
 
     pos = 0 + 0i
@@ -218,15 +198,10 @@ class AoC
     @tile_ops[first_tile] = [0, 'none', 'none']
     @op_tree[first_tile] = []
 
-    iters = 0
     @positions_to_process = [0 + 0i]
     while !@positions_to_process.empty?
-      # break if iters == 2
-      iters += 1
-
       pos = @positions_to_process.shift
       tile_id = @pos_to_tile[pos]
-      # puts "\n############################\n# Currently #{tile_id} is at #{pos}\n############################"
 
       # Look in each direction
       @directions.each do |direction|
@@ -239,10 +214,6 @@ class AoC
 
         found_tile = bruteforce_find(our_id: tile_id, direction: direction)
         if found_tile
-          # op_tree = @op_tree[tile_id].dup
-          # op_tree << @tile_ops[found_tile]
-          # @op_tree[found_tile] = op_tree
-
           set_tile_pos(found_tile, try_pos)
           @tiles_to_search.delete(found_tile)
           # puts "\n- Placing #{found_tile} at #{try_pos}"
@@ -250,7 +221,6 @@ class AoC
         end
       end
     end
-
 
     corners = [
       @pos_to_tile[@min_x + 1i*@min_y], # topleft
@@ -285,19 +255,6 @@ class AoC
     else
       raise direction
     end
-
-    result = []
-    size = rows.size
-    size.times { |y|
-      result[y] = []
-      size.times { |x|
-        result[y][x] = rows[y][size - 1 - x]
-      }
-    }
-
-    result.map!(&:join)
-
-    result
   end
 
   def rotate_tile(rows, amount)
@@ -317,13 +274,10 @@ class AoC
   def apply_tile_ops!
     @tile_rows = @tile_rows.map do |id, rows|
       ops = @tile_ops[id]
-      # puts "op tree for #{id} are #{@op_tree[id]}"
-      # @op_tree[id].each do |ops|
-        puts "applying ops for #{id} are #{ops}"
-        rotate_amount, flip1, flip2 = ops
-        rows = rotate_tile(rows, rotate_amount)
-        rows = flip_tile(flip_tile(rows, flip1), flip2)
-      # end
+      puts "applying ops for #{id} are #{ops}"
+      rotate_amount, flip1, flip2 = ops
+      rows = rotate_tile(rows, rotate_amount)
+      rows = flip_tile(flip_tile(rows, flip1), flip2)
 
       [id, rows]
     end.to_h
@@ -364,14 +318,12 @@ class AoC
     # make all tiles correct
     trim_all_tiles!
     # print_tile(0+0i, orig: true)
-    # apply_tile_ops!
 
     # I have no idea why I need to do this
     @tile_rows.each do |id, rows|
       @tile_rows[id] = flip_tile(@tile_rows[id], 'vert')
-      # print_tile(id, rows: flip_tile(@tile_rows[id], 'vert'))
     end
-    puts 'All tile have been flipped vertically :+1:'
+    puts 'All tiles have been flipped vertically :+1:'
 
     lines_per_tile = @tile_rows[@pos_to_tile[0 + 0i]].size
     puts "There are #{lines_per_tile} lines per tile.\n\n"
@@ -473,39 +425,11 @@ class AoC
     4.times do |rotate_index|
       # Try all pairs of mirroring
       ["none", "vert", "horz"].repeated_combination(2).each do |flip1, flip2|
-        # puts "\n\nReal tile:\n\n"
-        # puts @tile_rows[their_id].join("\n")
-
-        # other_edges = @tile_edges[their_id].rotate(rotate_index).flip_both(flip1, flip2)
-
         modified_shape = flip_tile(flip_tile(rotate_tile(shape, rotate_index), flip1), flip2)
         try_shape(modified_shape)
       end
     end
 
-    # tile_id = @pos_to_tile[Complex(@min_x, @min_y)]
-    # puts "topleft is #{tile_id}"
-    # puts @tile_rows[tile_id].join("\n")
-
-    # image = []
-    # edge_width = @tile_rows.values.first.size
-    # (@min_y..@max_y).each do |y|
-    #   rows = edge_width.times.map {[]}
-
-    #   (@min_x..@max_x).each do |x|
-    #     tile_id = @pos_to_tile[Complex(x, y)]
-    #     tile_rows = @tile_rows[tile_id]
-    #     tile_rows.each_with_index {|row, i| rows[i] << row}
-    #     # print "#{tile_id} "
-    #   end
-    #   puts
-    #   # first = tiles_this_row.shift
-    #   puts "#{rows}"
-    #   # puts "row #{y} is\n#{row}"
-    #   # image << first.zip(*tiles_this_row).join(" ")
-    # end
-
-    # puts "#{image.join("\n\n")}"
     @image.join("\n").count("#")
   end
 
