@@ -20,7 +20,7 @@ class AoC
     puts "-- move #{move_id+1} --" if print || move_id % 200 == 0
     current = @label.first
 
-    puts "cups: (#{current}) #{@label.join(" ")}" if print
+    puts "cups: #{@label.join(" ").gsub(current.to_s, "(#{current})")}" if print
     a, b, c = @label.delete_at(1), @label.delete_at(1), @label.delete_at(1)
     puts "pick up #{a}, #{b}, #{c}" if print
 
@@ -47,10 +47,10 @@ class AoC
     puts if print
   end
 
-  def one(pr)
+  def one(pr, n: 100)
     puts 'One called'
     setup!
-    100.times do |move_id|
+    n.times do |move_id|
       run(move_id, pr)
     end
     
@@ -88,7 +88,6 @@ class AoC
     puts " appended"
 
     setup!
-
     
     10000000.times do |move_id|
       run(move_id, false)
@@ -103,7 +102,11 @@ def main
   n = ARGV.shift
   runner = AoC.new ARGF.readlines.to_a
 
-  if n == '1'
+  if n == '0'
+    result = runner.one(true, n: 10)
+    raise unless result == '92658374'
+    puts "Result: #{result}"
+  elsif n == '1'
     puts "Result: #{runner.one(true)}"
   elsif n == '2'
     puts "Result: #{runner.two}"
