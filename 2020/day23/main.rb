@@ -17,7 +17,7 @@ class AoC
   end
 
   def run(move_id, print)
-    puts "-- move #{move_id+1} --" if print
+    puts "-- move #{move_id+1} --" if print || move_id % 200 == 0
     current = @label.first
 
     puts "cups: (#{current}) #{@label.join(" ")}" if print
@@ -49,7 +49,7 @@ class AoC
 
   def one(pr)
     puts 'One called'
-    @size = @label.size
+    setup!
     100.times do |move_id|
       run(move_id, pr)
     end
@@ -58,6 +58,18 @@ class AoC
       @label.rotate!
     end
     @label[1..].join("")
+  end
+
+  def setup!
+    print 'setup... '
+    @size = @label.size
+    print 'size, '
+    @indices = {}
+    @label.each_with_index do |n, i|
+      @indices[n] = i
+    end
+    print 'indices, '
+    puts 'done'
   end
 
   def two
@@ -75,37 +87,11 @@ class AoC
     print @label.last
     puts " appended"
 
-    indices = {}
+    setup!
 
+    
     10000000.times do |move_id|
-      puts "-- move #{move_id+1} --" if move_id % 200 == 0
-      current = @label.first
-
-      # puts "cups: (#{current}) #{@label.join(" ")}"
-      a, b, c = @label.delete_at(1), @label.delete_at(1), @label.delete_at(1)
-      # puts "pick up #{a}, #{b}, #{c}"
-
-      needle = current-1
-      minval = @label.min
-      found_index = nil
-      while !found_index do
-        found_index = @label.find_index(needle)
-        break if found_index
-
-        needle -= 1
-        if needle < minval
-          needle = @label.max
-        end
-      end
-
-      # puts "destination: #{@label[found_index]}"
-      found_index += 1
-      @label.insert(found_index, c)
-      @label.insert(found_index, b)
-      @label.insert(found_index, a)
-
-      @label << @label.shift
-      # puts
+      run(move_id, false)
     end
     
     i = @label.find_index(1)
