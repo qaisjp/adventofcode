@@ -7,6 +7,8 @@ require 'sorbet-runtime'
 class AoC
   extend T::Sig
 
+  attr_accessor :label
+
   def initialize(data)
     # @data = T.let(data.map(&:to_i), T::Array[Integer])
     @label = T.let(data[0].chars.map(&:to_i), T::Array[Integer])
@@ -72,13 +74,17 @@ class AoC
     puts 'done'
   end
 
-  def two
+  def test!
     old = @label.dup
     result = one(false)
     @label = old.dup
     raise unless result == '62934785' || one(false) == '67384529'
     @label = old
     puts 'One passed'
+  end
+
+  def two
+    test!
 
     max = @label.max
     ((max+1)..1000000).each do |n|
@@ -103,9 +109,12 @@ def main
   runner = AoC.new ARGF.readlines.to_a
 
   if n == '0'
+    old = runner.label.dup
     result = runner.one(true, n: 10)
+    runner.label = old
+    puts "\n\ntests"
+    runner.test!
     raise unless result == '92658374'
-    puts "Result: #{result}"
   elsif n == '1'
     puts "Result: #{runner.one(true)}"
   elsif n == '2'
