@@ -15,7 +15,7 @@ class AoC
   end
   
   def get(n)
-    @label[@size % n]
+    @label[n % @size]
   end
 
   def run(move_id, print)
