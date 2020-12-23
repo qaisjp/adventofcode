@@ -19,7 +19,7 @@ class AoC
   end
 
   def run(move_id, print)
-    puts "-- move #{move_id+1} --" if print || move_id % 200 == 0
+    puts "-- move #{move_id+1} - #{Time.now - @start_time} --" if print || move_id % 200 == 0
     current = @label.first
 
     puts "cups: #{@label.join(" ").gsub(current.to_s, "(#{current})")}" if print
@@ -63,6 +63,7 @@ class AoC
   end
 
   def setup!
+    @start_time = Time.now
     print 'setup... '
     @size = @label.size
     print 'size, '
