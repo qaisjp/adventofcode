@@ -13,8 +13,7 @@ class AoC
   end
   
   def get(n)
-    size = @label.size
-    @label[size % n]
+    @label[@size % n]
   end
 
   def run(move_id, print)
@@ -48,9 +47,10 @@ class AoC
     puts if print
   end
 
-  def one
+  def one(pr)
+    @size = @label.size
     100.times do |move_id|
-      run(move_id, true)
+      run(move_id, pr)
     end
     
     while @label[0] != 1
@@ -60,6 +60,12 @@ class AoC
   end
 
   def two
+    old = @label.dup
+    result = one(false)
+    raise unless result == '67384529' || result == '62934785'
+    @label = old
+    puts 'One passed'
+
     max = @label.max
     ((max+1)..1000000).each do |n|
       @label << n
@@ -110,7 +116,7 @@ def main
   runner = AoC.new ARGF.readlines.to_a
 
   if n == '1'
-    puts "Result: #{runner.one}"
+    puts "Result: #{runner.one(true)}"
   elsif n == '2'
     puts "Result: #{runner.two}"
   end
