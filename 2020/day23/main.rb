@@ -17,36 +17,40 @@ class AoC
     @label[size % n]
   end
 
+  def run(move_id, print)
+    puts "-- move #{move_id+1} --" if print
+    current = @label.first
+
+    puts "cups: (#{current}) #{@label.join(" ")}" if print
+    a, b, c = @label.delete_at(1), @label.delete_at(1), @label.delete_at(1)
+    puts "pick up #{a}, #{b}, #{c}" if print
+
+    needle = current-1
+    minval = @label.min
+    found_index = nil
+    while !found_index do
+      found_index = @label.find_index(needle)
+      break if found_index
+
+      needle -= 1
+      if needle < minval
+        needle = @label.max
+      end
+    end
+
+    puts "destination: #{@label[found_index]}" if print
+    found_index += 1
+    @label.insert(found_index, c)
+    @label.insert(found_index, b)
+    @label.insert(found_index, a)
+
+    @label << @label.shift
+    puts if print
+  end
+
   def one
     100.times do |move_id|
-      puts "-- move #{move_id+1} --"
-      current = @label.first
-
-      puts "cups: (#{current}) #{@label.join(" ")}"
-      a, b, c = @label.delete_at(1), @label.delete_at(1), @label.delete_at(1)
-      puts "pick up #{a}, #{b}, #{c}"
-
-      needle = current-1
-      minval = @label.min
-      found_index = nil
-      while !found_index do
-        found_index = @label.find_index(needle)
-        break if found_index
-
-        needle -= 1
-        if needle < minval
-          needle = @label.max
-        end
-      end
-
-      puts "destination: #{@label[found_index]}"
-      found_index += 1
-      @label.insert(found_index, c)
-      @label.insert(found_index, b)
-      @label.insert(found_index, a)
-
-      @label.rotate!
-      puts
+      run(move_id, true)
     end
     
     while @label[0] != 1
@@ -60,11 +64,13 @@ class AoC
     ((max+1)..1000000).each do |n|
       @label << n
     end
-    puts @label.last
-    puts "appended"
+    print @label.last
+    puts " appended"
+
+    indices = {}
 
     10000000.times do |move_id|
-      # puts "-- move #{move_id+1} --"
+      puts "-- move #{move_id+1} --" if move_id % 200 == 0
       current = @label.first
 
       # puts "cups: (#{current}) #{@label.join(" ")}"
@@ -90,7 +96,7 @@ class AoC
       @label.insert(found_index, b)
       @label.insert(found_index, a)
 
-      @label.rotate!
+      @label << @label.shift
       # puts
     end
     
