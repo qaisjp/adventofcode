@@ -48,6 +48,7 @@ class AoC
   end
 
   def one(pr)
+    puts 'One called'
     @size = @label.size
     100.times do |move_id|
       run(move_id, pr)
@@ -62,7 +63,8 @@ class AoC
   def two
     old = @label.dup
     result = one(false)
-    raise unless result == '67384529' || result == '62934785'
+    @label = old.dup
+    raise unless result == '62934785' || one(false) == '67384529'
     @label = old
     puts 'One passed'
 
