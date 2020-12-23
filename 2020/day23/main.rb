@@ -11,41 +11,59 @@ class AoC
 
   def initialize(data)
     # @data = T.let(data.map(&:to_i), T::Array[Integer])
-    @label = T.let(data[0].chars.map(&:to_i), T::Array[Integer])
+    @data = data[0].chars.map(&:to_i)
   end
-  
-  def get(n)
-    @label[n % @size]
+
+  def follow(key, n)
+    those = []
+    while n > 0
+      key = @label[key]
+      those << key
+      n -= 1
+    end
+    those
+  end
+
+  def get_cups_str
+    ns = []
+    key = @current
+    loop do
+      ns << key
+      key = @label[key]
+      break if key == @current
+    end
+    ns.join(" ").gsub(@current.to_s, "(#{@current})")
   end
 
   def run(move_id, print)
-    puts "-- move #{move_id+1} - #{Time.now - @start_time} --" if print || move_id % 200 == 0
-    current = @label.first
+    puts "-- move #{move_id+1} - #{Time.now - @start_time} --" if print || move_id % 20000 == 0
 
-    puts "cups: #{@label.join(" ").gsub(current.to_s, "(#{current})")}" if print
-    a, b, c = @label.delete_at(1), @label.delete_at(1), @label.delete_at(1)
+    puts "cups: #{get_cups_str}" if print
+    a, b, c = follow(@current, 3)
     puts "pick up #{a}, #{b}, #{c}" if print
 
-    needle = current-1
-    minval = @label.min
-    found_index = nil
-    while !found_index do
-      found_index = @label.find_index(needle)
-      break if found_index
+    # current - - -> label[c]
+    @label[@current] = @label[c]
+    @label.delete(a)
+    @label.delete(b)
+    @label.delete(c)
 
+    needle = @current-1
+    while !(c_to = @label[needle]) do
       needle -= 1
-      if needle < minval
-        needle = @label.max
+      if needle < @minval
+        needle = @label.keys.max
       end
     end
 
-    puts "destination: #{@label[found_index]}" if print
-    found_index += 1
-    @label.insert(found_index, c)
-    @label.insert(found_index, b)
-    @label.insert(found_index, a)
+    puts "destination: #{needle}" if print
 
-    @label << @label.shift
+    @label[needle] = a
+    @label[a] = b
+    @label[b] = c
+    @label[c] = c_to
+
+    @current = @label[@current]
     puts if print
   end
 
@@ -55,23 +73,29 @@ class AoC
     n.times do |move_id|
       run(move_id, pr)
     end
-    
-    while @label[0] != 1
-      @label.rotate!
+
+    label = []
+    first = 1
+    c = first
+    while (c = @label[c]) != first
+      label << c
     end
-    @label[1..].join("")
+    label.join("")
   end
 
   def setup!
     @start_time = Time.now
     print 'setup... '
-    @size = @label.size
-    print 'size, '
-    @indices = {}
-    @label.each_with_index do |n, i|
-      @indices[n] = i
-    end
-    print 'indices, '
+
+    label = @data.each_with_index.map do |n, i|
+      [n, @data[i+1] || @data.first]
+    end.to_h
+    @label = T.let(label, T::Hash[Integer, Integer])
+    @first = @data.first
+    @current = @first
+    @minval = @label.keys.min
+
+    print 'label, '
     puts 'done'
   end
 
@@ -87,11 +111,10 @@ class AoC
   def two
     test!
 
-    max = @label.max
+    max = @data.max
     ((max+1)..1000000).each do |n|
-      @label << n
+      @data << n
     end
-    print @label.last
     puts " appended"
 
     setup!
@@ -100,8 +123,9 @@ class AoC
       run(move_id, false)
     end
     
-    i = @label.find_index(1)
-    [get(i+1), get(i+2)]
+    a = @label[1]
+    b = @label[a]
+    [a, b, a * b]
   end
 end
 
