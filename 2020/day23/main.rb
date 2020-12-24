@@ -36,7 +36,7 @@ class AoC
   end
 
   def run(move_id, print)
-    puts "-- move #{move_id+1} - #{Time.now - @start_time} --" if print || move_id % 20000 == 0
+    puts "-- move #{move_id+1} - #{Time.now - @start_time} --" if print || move_id % 200000 == 0
 
     puts "cups: #{get_cups_str}" if print
     a, b, c = follow(@current, 3)
