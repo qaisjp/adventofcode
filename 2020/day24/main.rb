@@ -24,7 +24,7 @@ class AoC
   end
 
   def to_coord(route)
-    coord = 0 + 0i
+    coord = 0.0 + 0.0i
     route.each do |e|
       coord += @offsets.fetch(e)
     end
