@@ -6,14 +6,6 @@ def stuff
     $stuff
 end
 
-def window_sum(i)
-    thing = [stuff[i], stuff[i+1], stuff[i+2]]
-    if thing != thing.compact
-        return nil
-    end
-    thing.sum
-end
-
 def one
     count = 0
     stuff.each_with_index do |this, i|
@@ -27,20 +19,19 @@ def one
 end
 
 def two
-    sum = window_sum(0)
+    sum = nil
     count = 0
-    (1...).each do |i|
-        this_sum = window_sum(i)
-        if this_sum.nil?
-            puts count
-            return
-        end
+    stuff.each_cons(3) do |window|
+        this_sum = window.sum
 
-        if this_sum > sum
-            count += 1
+        if !sum.nil?
+            if this_sum > sum
+                count += 1
+            end
         end
         sum = this_sum
     end
+    puts count
 end
 
 if num == "1"
