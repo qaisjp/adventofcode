@@ -8,5 +8,5 @@ fi
 daystr=$(printf "day%02d" "$1")
 echo "$daystr"
 
-cp -r ../2020/dayXX $daystr
+cp -r dayXX $daystr
 curl -b session=$(cat token.txt) https://adventofcode.com/2021/day/$1/input > $daystr/input.txt
