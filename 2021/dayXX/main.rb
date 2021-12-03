@@ -35,18 +35,22 @@ def test(part)
   runner = AoC.new File.read("example.txt").split("\n")
 
   one = runner.one
-  if one != $examples.first
-    puts "Example part 1 was #{one}, expected #{$examples.first}"
+  this = $examples.first
+  if one != this
+    puts "Example part 1 was #{one}, expected #{this}"
   else
-    puts "Example part 1 passes"
+    puts "Example part 1 passes (#{one})"
+    passed = true
   end
 
-  if part == "2"
+  if passed
+    puts "\n\n--- Example part 2"
     two = runner.two
-    if two != $examples.first
-      puts "Example part 2 was #{two}, expected #{$examples[1]}"
+    this = $examples[1]
+    if two != this
+      puts "\n\nExample part 2 was #{two}, expected #{this}"
     else
-      puts "Example part 2 passes"
+      puts "\n\nExample part 2 passes (#{this})"
     end
   end
 end
@@ -61,6 +65,7 @@ def main
 
   test(n)
 
+  puts "\n\n--- Part #{n} solution"
   if n == '1'
     puts "Result: #{runner.one}"
   elsif n == '2'
