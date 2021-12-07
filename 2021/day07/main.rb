@@ -9,7 +9,7 @@ class AoC
   end
 
   def one
-    (0..@data.uniq.max).map do |align_to|
+    (0..@data.max).map do |align_to|
       @data.sum do |x|
         (align_to - x).abs
       end
@@ -17,7 +17,7 @@ class AoC
   end
 
   def two
-    (0..@data.uniq.max).map do |align_to|
+    (0..@data.max).map do |align_to|
       @data.sum do |x|
         n = (align_to - x).abs
         ((n**2)+n) / 2
