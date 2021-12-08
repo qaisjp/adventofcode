@@ -1,0 +1,110 @@
+
+
+number: 0 1 2 3 4 5 6 7 8 9
+lines : 6 2 5 5 4 5 6 3 7 6
+
+Letter to location map:
+
+```
+    8:    
+   aaaa   
+  b    c  
+  b    c  
+   dddd   
+  e    f  
+  e    f  
+   gggg   
+
+```
+
+
+Uniques:
+
+```
+Size 2    Size 4
+
+   1:      4:
+  ....    ....
+ .    c  b    c
+ .    c  b    c
+  ....    dddd
+ .    f  .    f
+ .    f  .    f
+  ....    ....
+
+
+Size 3    Size 7
+
+   7:      8:  
+  aaaa    aaaa 
+ .    c  b    c
+ .    c  b    c
+  ....    dddd 
+ .    f  e    f
+ .    f  e    f
+  ....    gggg 
+
+
+Eight minus Four minus "a"
+
+   8:  
+  .... 
+ .    .
+ .    .
+  .... 
+ e    .
+ e    .
+  gggg 
+
+
+Four minus One
+
+    4:
+   ....
+  b    .
+  b    .
+   dddd
+  .    .
+  .    .
+   ....
+
+```
+
+
+```
+
+ S6      S2      S5      S5      S4
+  0:      1:      2:      3:      4:
+ aaaa    ....    aaaa    aaaa    ....
+b    c  .    c  .    c  .    c  b    c
+b    c  .    c  .    c  .    c  b    c
+ ....    ....    dddd    dddd    dddd
+e    f  .    f  e    .  .    f  .    f
+e    f  .    f  e    .  .    f  .    f
+ gggg    ....    gggg    gggg    ....
+
+ S5       S6     S3      S7      S6
+  5:      6:      7:      8:      9:
+ aaaa    aaaa    aaaa    aaaa    aaaa
+b    .  b    .  .    c  b    c  b    c
+b    .  b    .  .    c  b    c  b    c
+ dddd    dddd    ....    dddd    dddd
+.    f  e    f  .    f  e    f  .    f
+.    f  e    f  .    f  e    f  .    f
+ gggg    gggg    ....    gggg    gggg
+
+```
+
+
+Size 5
+
+
+ S5       S5      S5     
+  5:       2:      3:    
+ aaaa     aaaa    aaaa   
+b    .   .    c  .    c  
+b    .   .    c  .    c  
+ dddd     dddd    dddd   
+.    f   e    .  .    f  
+.    f   e    .  .    f  
+ gggg     gggg    gggg   
