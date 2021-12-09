@@ -5,7 +5,6 @@
 class AoC
 
   def initialize(data)
-    # @data = data.map(&:to_i)
     @grid = data.map {_1.chars.map(&:to_i)}
     @row_size = @grid.first.size
   end
@@ -44,26 +43,22 @@ class AoC
 
   def adjacents_lower(y, x)
     this = @grid[y][x]
-    # puts "input #{y}, #{x} -- #{this} -- #{adjacents(y, x).inspect}"
-    adjacents(y, x, coords: true).filter do |y, x|
-      # puts "adjacent lower #{y}, #{x}"
-      @grid[y][x] < this
-    end
+    adjacents(y, x, coords: true) { _3 < this }
   end
 
   def is_lowest(y, x)
     num = @grid[y][x]
-    adjacents(y, x) { _3 < num }.empty?
+    # check if this num is >= any any adjacent values
+    adjacents(y, x) { num >= _3 }.empty?
   end
 
   def one
     total = 0
-    @low_points = []
 
     @grid.each_with_index do |row, y|
       row.each_with_index do |num, x|
         if is_lowest(y, x)
-          @low_points << [y, x]
+          # puts "#{y}, #{x} is lowest"
           total += num + 1
         end
       end
@@ -77,26 +72,19 @@ class AoC
   end
 
   def two
-    one
-
     matrix = new_basin_matrix
 
     # for each location...
     @grid.each_with_index do |row, y|
       row.each_with_index do |num, x|
-        # mark any adjacents lower than this with a 1
-        adjacents_lower(y, x).each do |adj_y, adj_x|
-          matrix[adj_y][adj_x] = 1
-        end
-
         # 9 is a wall, don't mark this point
         next if num == 9
         matrix[y][x] = 1
       end
     end
 
-    puts "#{matrix.map(&:join).join("\n")}"
-    puts
+    # puts "#{matrix.map(&:join).join("\n")}"
+    # puts
 
     island_sizes = []
 
@@ -139,8 +127,6 @@ class AoC
         island_sizes << size
       end
     end
-
-    # puts island_sizes.sort.reverse.inspect
 
     island_sizes.sort.reverse[0..2].inject(:*)
   end
