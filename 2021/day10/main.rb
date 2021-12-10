@@ -30,14 +30,6 @@ class AoC
       stack = []
 
       invalid = false
-      # max_size = line.size
-      # chars = line.chars
-
-      # index = 0
-      # while !(chars.empty? || invalid)
-
-      #   index += 1
-      # end
       line.chars.each_with_index do |c, i|
         if Opener.index(c)
           stack << c
@@ -61,30 +53,38 @@ class AoC
           invalid = true
           break
         end
-
       end
 
-      @incomplete_lines << line unless invalid
-      # break unless invalid_chars.empty?
+      @incomplete_lines << stack.join unless invalid
     end
-
-    # puts "invalids: #{invalid_chars}"
 
     invalid_chars.map {Points[_1]}.sum
   end
 
   def two
-    # one
+    scores = []
+    @incomplete_lines.each do |line|
+      chars = line.chars
 
-    puts @incomplete_lines
+      score = 0
+      while !chars.empty?
+        top = chars.pop # top is always an opener
+        closer = Closer[Opener.index(top)]
 
-    1
+        score *= 5
+        score += AutoPoints[closer]
+      end
+
+      scores << score
+    end
+
+    scores.sort[scores.size/2]
   end
 end
 
 $examples = [
   26397,
-  0,
+  288957,
 ]
 
 def test(part)
