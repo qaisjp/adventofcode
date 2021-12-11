@@ -29,10 +29,15 @@ $examples = [
 ]
 
 def test(part)
+  examples = [
+    0,
+    0,
+  ]
+
   runner = AoC.new File.read("example.txt").split("\n")
 
   one = runner.one
-  this = $examples.first
+  this = examples.first
   if one != this
     puts "Example part 1 was #{one}, expected #{this}"
   else
@@ -43,16 +48,21 @@ def test(part)
   if passed
     puts "\n\n--- Example part 2"
     two = runner.two
-    this = $examples[1]
+    this = examples.last
     if two != this
       puts "\n\nExample part 2 was #{two}, expected #{this}"
+      passed = false
     else
       puts "\n\nExample part 2 passes (#{this})"
     end
   end
+
+  passed
 end
 
 def main
+  run_both = true
+
   n = ARGV.shift
   if ARGV.empty?
     runner = AoC.new File.read("input.txt").split("\n")
@@ -60,12 +70,16 @@ def main
     runner = AoC.new ARGF.readlines.to_a
   end
 
-  test(n)
+  if !test(n)
+    puts "Tests failed :("
+    return
+  end
 
-  puts "\n\n--- Part #{n} solution"
-  if n == '1'
+  puts "\n\n--- Part #{n} solution" if n != ""
+  if n == '1' || (run_both && n == '2')
     puts "Result: #{runner.one}"
-  elsif n == '2'
+  end
+  if n == '2'
     puts "Result: #{runner.two}"
   end
 end
