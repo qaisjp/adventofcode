@@ -23,11 +23,6 @@ class AoC
   end
 end
 
-$examples = [
-  0,
-  0,
-]
-
 def test(part)
   examples = [
     0,
