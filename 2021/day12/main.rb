@@ -18,10 +18,16 @@ class AoC
     @routes = []
   end
 
-  def travel(start, route)
+  def travel(start, route, multi)
     if @one_only.include?(start)
-      # stop if we aren't allowed to visit this one again
-      return if route.include?(start)
+      if start == multi
+        c = route.count(start)
+        return if c == 2
+        raise "????" if c > 2
+      else
+        # stop if we aren't allowed to visit this one again
+        return if route.include?(start)
+      end
     end
     route << start
 
@@ -37,13 +43,13 @@ class AoC
     end
 
     next_places.each do |place|
-      travel(place, route.dup)
+      travel(place, route.dup, multi)
     end
   end
 
   def one
     # puts "#{@data}"
-    travel("start", [])
+    travel("start", [], nil)
     # puts "#{@routes}"
 
 
@@ -51,8 +57,14 @@ class AoC
   end
 
   def two
+    @routes = []
 
-    0
+    @data.keys.each do |multi|
+      next if multi == "start" || multi == "end"
+      travel("start", [], multi)
+    end
+
+    @routes.uniq.size
   end
 end
 
