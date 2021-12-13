@@ -38,27 +38,15 @@ class AoC
 
   # modifies array.
   def fold_y(grid, y)
-    puts "folding y=#{y}"
-    # raise "not odd" if (grid.size % 2) == 0
-
     top = grid[...y]
-    folded_bottom = grid[y+1...].reverse
+    bottom = grid[y+1...]
+    bottom += Array.new(top.size - bottom.size) { Array.new(top.first.size, false)}
 
-    if (rs = folded_bottom.size) < (rl = top.size)
-      cut_amount = rl - rs
-      extra = Array.new(cut_amount) { Array.new(top.first.size, false)}
-      # puts "extra: #{extra}"
-      folded_bottom = extra + folded_bottom
-    end
+    raise "??? top size = #{top.size}, bottom=#{bottom.size}" unless top.size == bottom.size
 
-    # print_grid(top)
-    # print_grid(folded_bottom.reverse)
-    raise "??? top size = #{top.size}, bottom=#{folded_bottom.size}" unless top.size == folded_bottom.size
-
-    top.each_with_index do |row, y|
-      row.each_with_index do |tv, x|
-        top[y][x] ||= folded_bottom[y][x]
-      end
+    bottom = bottom.reverse
+    top.size.times do |y|
+      top[y] = top[y].zip(bottom[y]).map {_1.inject(&:|)}
     end
 
     top
@@ -83,8 +71,6 @@ class AoC
 
     first_count = nil
 
-    print_grid(grid) if testing
-
     @folds_xy.each_with_index do |(x, y), iter|
       grid = if x
           fold_x(grid, x)
@@ -93,12 +79,7 @@ class AoC
         else
           raise "???"
         end
-      print_grid(grid) if testing
-
-      if iter == 0
-        first_count = grid.sum {|row| row.count {_1}}
-        # break unless testing
-      end
+      first_count = grid.sum {|row| row.count {_1}} if iter == 0
     end
 
     print_grid(grid)
