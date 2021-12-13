@@ -66,7 +66,6 @@ class AoC
 
   # might modify array.
   def fold_x(grid, x)
-    puts "folding x=#{x} (max_x=#{@max_x})"
     grid.map do |row|
       left = row[...x]
       right = row[x+1...]
