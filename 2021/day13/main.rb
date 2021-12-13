@@ -39,12 +39,11 @@ class AoC
   # modifies array.
   def fold_y(grid, y)
     top = grid[...y]
-    bottom = grid[y+1...]
-    bottom += Array.new(top.size - bottom.size) { Array.new(top.first.size, false)}
+    bottom = grid[y+1...].reverse
+    bottom = Array.new(top.size - bottom.size) { Array.new(top.first.size, false)} + bottom
 
     raise "??? top size = #{top.size}, bottom=#{bottom.size}" unless top.size == bottom.size
 
-    bottom = bottom.reverse
     top.size.times do |y|
       top[y] = top[y].zip(bottom[y]).map {_1.inject(&:|)}
     end
@@ -56,10 +55,10 @@ class AoC
   def fold_x(grid, x)
     grid.map do |row|
       left = row[...x]
-      right = row[x+1...]
-      right += Array.new(left.size - right.size, false)
+      right = row[x+1...].reverse
+      right = Array.new(left.size - right.size, false) + right
       raise "??? left size = #{left.size}, right=#{right.size}" unless left.size == right.size
-      left.zip(right.reverse).map {_1.inject(&:|)}
+      left.zip(right).map {_1.inject(&:|)}
     end
   end
 
