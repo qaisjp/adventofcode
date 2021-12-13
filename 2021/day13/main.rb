@@ -64,24 +64,15 @@ class AoC
     top
   end
 
-  # modifies array.
+  # might modify array.
   def fold_x(grid, x)
     puts "folding x=#{x} (max_x=#{@max_x})"
     grid.map do |row|
-      # raise "not odd" if (row.size % 2) == 0
-
       left = row[...x]
-      folded_right = row[x+1...].reverse
-
-      if (rs = folded_right.size) < (rl = left.size)
-        cut_amount = rl - rs
-        extra = Array.new(cut_amount, false)
-        # puts "extra: #{extra}"
-        folded_right = extra + folded_right
-      end
-
-      raise "??? left size = #{left.size}, right=#{folded_right.size}" unless left.size == folded_right.size
-      left.zip(folded_right).map {_1.inject(&:|)}
+      right = row[x+1...]
+      right += Array.new(left.size - right.size, false)
+      raise "??? left size = #{left.size}, right=#{right.size}" unless left.size == right.size
+      left.zip(right.reverse).map {_1.inject(&:|)}
     end
   end
 
