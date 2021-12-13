@@ -90,14 +90,7 @@ class AoC
   def print_grid(grid)
     puts
     grid.each do |row|
-      str = row.map do |v|
-        if v
-          "#"
-        else
-          "."
-        end
-      end.join
-      puts str
+      puts row.map {_1 ? "#" : "."}.join
     end
     puts
   end
