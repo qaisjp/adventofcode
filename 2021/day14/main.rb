@@ -27,14 +27,20 @@ class AoC
   end
 
   def apply(str)
-    new_str = ""
-    str.chars.each_cons(2).each_with_index do |(a, b), i|
-      middle = @rules["#{a}#{b}"] || ""
-      new_str += a if i == 0
-      new_str += middle + b
+    new_str = str.chars.lazy.each_cons(2).each_with_index.flat_map do |(a, b), i|
+      # puts "a: #{a} b: #{b} i: #{i}"
+      arr = []
+      arr << a if i == 0
+      if (middle = @rules[a + b])
+        arr << middle
+      end
+      arr << b
+      arr
     end
 
-    new_str
+    # puts "#{new_str.inspect}"
+
+    new_str.force * ""
   end
 
   def one
