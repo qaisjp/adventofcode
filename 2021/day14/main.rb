@@ -26,28 +26,43 @@ class AoC
     end
   end
 
-  def apply(str)
-    new_str = ""
-    str.chars.each_cons(2).each_with_index do |(a, b), i|
-      middle = @rules["#{a}#{b}"] || ""
-      new_str += a if i == 0
-      new_str += middle + b
+  def apply(adj)
+    adj.each_with_object(Hash.new(0)) do |(pair, count), h|
+      a, b = pair.chars
+      if (middle = @rules["#{a}#{b}"])
+        h[a + middle] += count
+        h[middle + b] += count
+      else
+        h[pair] += count
+      end
     end
-
-    new_str
   end
 
   def one
-    str = @template
-    10.times do
-      str = apply(str)
+    puts "@rules: #{@rules}"
+    adj = str_to_adj(@template)
+
+    3.times do
+      adj = apply(adj)
     end
-    # puts str
 
-    mc = str.chars.most_common
-    lc = str.chars.least_common
+    puts
+    puts "adj:#{adj}"
+    puts
 
-    str.count(mc) - str.count(lc)
+    puts adj.keys.each_cons(2).to_a.inspect
+
+    counts = Hash.new(0)
+    adj.each do |pair, count|
+      a, b = pair.chars
+      counts[a] += count
+      counts[b] += count
+    end
+
+    puts "counts: #{counts}"
+
+    counts = counts.invert.keys
+    counts.max - counts.min
   end
 
   def two
