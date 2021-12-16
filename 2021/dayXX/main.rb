@@ -19,7 +19,7 @@ class AoC
 
   def two
 
-    1
+    0
   end
 end
 
