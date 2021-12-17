@@ -95,7 +95,6 @@ class AoC
   end
 
   def two
-
     @counts
   end
 end

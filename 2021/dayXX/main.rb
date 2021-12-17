@@ -1,11 +1,14 @@
 # frozen_string_literal: true
 # typed: true
 
+require 'scanf'
+
 # AoC
 class AoC
 
   def initialize(data)
     # @data = data.map(&:to_i)
+    # @data = data.first
     @data = data
   end
 
@@ -56,26 +59,27 @@ def test(part)
 end
 
 def main
-  run_both = true
+  run_both = false
 
   n = ARGV.shift
-  if ARGV.empty?
-    runner = AoC.new File.read("input.txt").split("\n")
-  else
-    runner = AoC.new ARGF.readlines.to_a
-  end
 
   if !test(n)
     puts "Tests failed :("
     return
   end
 
+  if ARGV.empty?
+    runner = AoC.new File.read("input.txt").split("\n")
+  else
+    runner = AoC.new ARGF.readlines.to_a
+  end
+
   puts "\n\n--- Part #{n} solution" if n != ""
   if n == '1' || (run_both && n == '2')
-    puts "Result: #{runner.one}"
+    puts "Result 1: #{runner.one}"
   end
   if n == '2'
-    puts "Result: #{runner.two}"
+    puts "Result 2: #{runner.two}"
   end
 end
 
