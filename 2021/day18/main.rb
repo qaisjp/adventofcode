@@ -120,12 +120,17 @@ def new_tree(arr, parent=nil)
   end
 end
 
+$muted = false
+def p(x)
+  puts(x) unless $muted
+end
+
 def explode(node)
   # Exploding pairs will always consist of two regular numbers
   raise "node.l is not a leaf" unless node.l.v
   raise "node.r is not a leaf" unless node.r.v
 
-  puts "Exploding #{node} whose parent is #{node.parent.inspect}"
+  p "Exploding #{node} whose parent is #{node.parent.inspect}"
 
   # the pair's left value is added to the first regular number to the left of the exploding pair (if any)
   pairs_left_value = node.l.v
@@ -146,20 +151,20 @@ end
 
 def explore(node, depth=1, &blk)
   if depth >= 4 && !node.v
-    # puts("Reached depth level #{depth} on node #{node} - EXPLOSION TIME yo")
+    # p("Reached depth level #{depth} on node #{node} - EXPLOSION TIME yo")
 
     # Check if this node contains another node on the left or the right
     left = node.l
     right = node.r
     leftmost_pair = if !left.v
-      puts "- Leftmost pair is #{left} (left)"
+      p "- Leftmost pair is #{left} (left)"
       left
     elsif !right.v
-      puts "- Leftmost pair is #{right} (right)"
+      p "- Leftmost pair is #{right} (right)"
       right
     else
       # Node only contains leaf nodes
-      # puts "- Node only contains leaf nodes"
+      # p "- Node only contains leaf nodes"
       explore(node.l, depth+1, &blk)
       explore(node.r, depth+1, &blk)
       nil
@@ -176,8 +181,8 @@ def explore(node, depth=1, &blk)
     explore(node.l, depth+1, &blk)
     explore(node.r, depth+1, &blk)
   elsif node.v >= 10
-      # split
-    puts "Node value #{node.v} needs splitting — parent is #{node.parent.inspect}"
+    # split
+    p "Node value #{node.v} needs splitting — parent is #{node.parent.inspect}"
     node.birth(
       node.v / 2,
       (node.v / 2.0).ceil,
@@ -199,8 +204,8 @@ class AoC
     iterations_needed = 0
     (1..).each do |i|
       affected = false
-      puts "\n\n\n==== Iteration #{i}\n|\n"
-      explore(t) { affected = true; puts "|\n==== Node is now #{t.arr}"; break }
+      p "\n\n\n==== Iteration #{i}\n|\n"
+      explore(t) { affected = true; p "|\n==== Node is now #{t.arr}"; break }
       return iterations_needed unless affected
       iterations_needed += 1
     end
@@ -226,12 +231,12 @@ class AoC
     t = tree_array.inject do |a, b|
       a_arr = a.arr
       b_arr = b.arr
-      puts "----------------------"
-      puts "  #{a_arr}"
-      puts "+ #{b_arr}"
+      p "----------------------"
+      p "  #{a_arr}"
+      p "+ #{b_arr}"
       c = a.basic_add_to(b)
       iteratively_explore(c)
-      puts "= #{c.arr}"
+      p "= #{c.arr}"
       yield(a_arr, b_arr, c) if blk
       # break
       c
@@ -273,6 +278,7 @@ class AoC
   end
 
   def basic_tests
+    $muted = true
     test([[[[[9,8],1],2],3],4] , [[[[0,9],2],3],4])
     test([7,[6,[5,[4,[3,2]]]]] , [7,[6,[5,[7,0]]]])
     test([[6,[5,[4,[3,2]]]],1] , [[6,[5,[7,0]]],3])
@@ -315,12 +321,10 @@ class AoC
     test_mag([[[[3,0],[5,3]],[4,4]],[5,5]] , 791)
     test_mag([[[[5,0],[7,4]],[5,5]],[6,6]] , 1137)
     test_mag([[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]] , 3488)
+    $muted = false
   end
 
   def one
-    t = new_tree(eval("[[[[[9,8],1],2],3],4]"))
-    explore(t) {}
-
     basic_tests
 
     test([ [[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]], [7,[[[3,7],[4,3]],[[6,3],[8,8]]]] ], [[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]], iter: true)
