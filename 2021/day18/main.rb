@@ -96,9 +96,9 @@ class Node
     @v = value
   end
 
-  def convert_from_leaf(left, right)
-    @l = left
-    @r = right
+  def birth(left, right)
+    @l = new_tree(left, self)
+    @r = new_tree(right, self)
     @v = nil
   end
 
@@ -113,7 +113,9 @@ def new_tree(arr, parent=nil)
     new_parent.r = new_tree(arr.last, new_parent)
     new_parent
   else
-    Node.new(nil, nil, arr)
+    yee = Node.new(nil, nil, arr)
+    yee.parent = parent
+    yee
   end
 end
 
@@ -122,7 +124,7 @@ def explode(node)
   raise "node.l is not a leaf" unless node.l.v
   raise "node.r is not a leaf" unless node.r.v
 
-  puts "Exploding #{node}"
+  puts "Exploding #{node} whose parent is #{node.parent.inspect}"
 
   # the pair's left value is added to the first regular number to the left of the exploding pair (if any)
   pairs_left_value = node.l.v
@@ -167,22 +169,26 @@ def explore(node, depth=1, &blk)
     else
       # Node only contains leaf nodes
       puts "- Node only contains leaf nodes"
+      explore(node.l, depth+1, &blk)
+      explore(node.r, depth+1, &blk)
       nil
     end
 
-    return unless leftmost_pair
-
-    # Explode the leftmost_pair
-    explode(leftmost_pair)
-    yield
+    if leftmost_pair
+      # Explode the leftmost_pair
+      explode(leftmost_pair)
+      yield
+    end
   end
 
   # split
   if node.v&.>= 10
-    node.convert_from_leaf(
-      new_tree(node.v / 2, node),
-      new_tree((node.v / 2.0).ceil, node),
+    puts "Node value #{node.v} needs splitting — parent is #{node.parent.inspect}"
+    node.birth(
+      node.v / 2,
+      (node.v / 2.0).ceil,
     )
+    yield
   end
 end
 
@@ -195,13 +201,26 @@ class AoC
     @data = data.map {new_tree(eval(_1))}
   end
 
+  def iteratively_explore(t)
+    (1..).each do |i|
+      affected = false
+      puts "\n\n\n==== Iteration #{i}\n|\n"
+      explore(t) { affected = true; puts "|\n==== Node is now #{t.arr}"; break }
+      return unless affected
+    end
+  end
 
-  def test(i, out, &blk)
+
+  def test(i, out, iter: false, &blk)
     t = new_tree(i)
-    if blk
-      explore(t, &blk)
+    if iter
+      iteratively_explore(t)
     else
-      explore(t) {}
+      if blk
+        explore(t, &blk)
+      else
+        explore(t) {}
+      end
     end
     actual = t.arr
     raise "test failed #{out} != #{actual}" unless out == actual
@@ -220,6 +239,10 @@ class AoC
     test(10, [5,5])
     test(11, [5,6])
     test(12, [6,6])
+
+    puts "\n\n\n\n\n\n\n\nSTART\n"
+
+    test([[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]], [[[[0,7],4],[[7,8],[6,0]]],[8,1]], iter: true)
 
     0
   end
