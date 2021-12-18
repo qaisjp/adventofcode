@@ -103,6 +103,21 @@ class Node
   end
 
   def inspect; to_s; end
+
+  def basic_add_to(other)
+    new_node = Node.new(self, other, nil)
+    self.parent = new_node
+    other.parent = new_node
+    new_node
+  end
+
+  def magnitude
+    if v
+      v
+    else
+      3*l.magnitude + 2*r.magnitude
+    end
+  end
 end
 
 def new_tree(arr, parent=nil)
@@ -150,7 +165,7 @@ def explore(node, depth=1, &blk)
       explore(node.r, depth+1, &blk)
     end
   elsif depth == 4 && !node.v
-    puts("Reached depth level #{depth} on node #{node} - EXPLOSION TIME yo")
+    # puts("Reached depth level #{depth} on node #{node} - EXPLOSION TIME yo")
 
     # if node.v
     #   puts "- Node is a leaf node."
@@ -168,7 +183,7 @@ def explore(node, depth=1, &blk)
       right
     else
       # Node only contains leaf nodes
-      puts "- Node only contains leaf nodes"
+      # puts "- Node only contains leaf nodes"
       explore(node.l, depth+1, &blk)
       explore(node.r, depth+1, &blk)
       nil
@@ -202,14 +217,16 @@ class AoC
   end
 
   def iteratively_explore(t)
+    iterations_needed = 0
     (1..).each do |i|
       affected = false
       puts "\n\n\n==== Iteration #{i}\n|\n"
       explore(t) { affected = true; puts "|\n==== Node is now #{t.arr}"; break }
-      return unless affected
+      return iterations_needed unless affected
+      iterations_needed += 1
     end
+    raise "???"
   end
-
 
   def test(i, out, iter: false, &blk)
     t = new_tree(i)
@@ -223,7 +240,39 @@ class AoC
       end
     end
     actual = t.arr
-    raise "test failed #{out} != #{actual}" unless out == actual
+    raise "\n\n# test failed:\n- wanted: #{out}\n- got:    #{actual}" unless out == actual
+  end
+
+  def sumup(tree_array)
+    t = tree_array.inject do |a, b|
+      puts "----------------------"
+      puts "  #{a.arr}"
+      puts "+ #{b.arr}"
+      c = a.basic_add_to(b)
+      iteratively_explore(c)
+      puts "= #{c.arr}"
+      # break
+      c
+    end
+  end
+
+  def sumup_test(i, out)
+    i.map! {new_tree(_1)}#.each {iteratively_explore(_1)}
+    t = sumup(i)
+
+    actual = t.arr
+    raise "\n\n# test failed:\n- wanted: #{out}\n- got:    #{actual}" unless out == actual
+    t
+  end
+
+  def test_mag(i, out)
+    t = new_tree(i)
+    actual = t.magnitude
+    raise "\n\n# test magnitude failed:\n- wanted: #{out}\n- got:    #{actual}" unless out == actual
+  end
+
+  def needed_reducing(t)
+    iteratively_explore(t) > 0
   end
 
   def one
@@ -243,6 +292,79 @@ class AoC
     puts "\n\n\n\n\n\n\n\nSTART\n"
 
     test([[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]], [[[[0,7],4],[[7,8],[6,0]]],[8,1]], iter: true)
+
+    sumup_test([
+      [1,1],
+      [2,2],
+      [3,3],
+      [4,4],
+    ], [[[[1,1],[2,2]],[3,3]],[4,4]])
+
+    sumup_test([
+      [1,1],
+      [2,2],
+      [3,3],
+      [4,4],
+      [5,5],
+    ], [[[[3,0],[5,3]],[4,4]],[5,5]])
+
+    sumup_test([
+      [1,1],
+      [2,2],
+      [3,3],
+      [4,4],
+      [5,5],
+      [6,6],
+    ], [[[[5,0],[7,4]],[5,5]],[6,6]])
+
+
+    # does not pass.
+
+    # sumup_test([
+    #   [[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]],
+    #   [7,[[[3,7],[4,3]],[[6,3],[8,8]]]],
+    #   [[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]],
+    #   [[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]],
+    #   [7,[5,[[3,8],[1,4]]]],
+    #   [[2,[2,2]],[8,[8,1]]],
+    #   [2,9],
+    #   [1,[[[9,3],9],[[9,0],[0,7]]]],
+    #   [[[5,[7,4]],7],1],
+    #   [[[[4,2],2],6],[8,7]],
+    # ], [[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]])
+
+
+    test_mag([[1,2],[[3,4],5]] , 143)
+    test_mag([[[[0,7],4],[[7,8],[6,0]]],[8,1]] , 1384)
+    test_mag([[[[1,1],[2,2]],[3,3]],[4,4]] , 445)
+    test_mag([[[[3,0],[5,3]],[4,4]],[5,5]] , 791)
+    test_mag([[[[5,0],[7,4]],[5,5]],[6,6]] , 1137)
+    test_mag([[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]] , 3488)
+
+    @data.each do |line|
+      raise "input is not safe" if needed_reducing(line)
+    end
+
+    result = sumup_test(
+      [
+        [[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]],
+        [[[5,[2,8]],4],[5,[[9,9],0]]],
+        [6,[[[6,2],[5,6]],[[7,6],[4,7]]]],
+        [[[6,[0,7]],[0,9]],[4,[9,[9,0]]]],
+        [[[7,[6,4]],[3,[1,3]]],[[[5,5],1],9]],
+        [[6,[[7,3],[3,2]]],[[[3,8],[5,7]],4]],
+        [[[[5,4],[7,7]],8],[[8,3],8]],
+        [[9,3],[[9,9],[6,[4,9]]]],
+        [[2,[[7,7],7]],[[5,8],[[9,3],[0,2]]]],
+        [[[[5,2],5],[8,[3,7]]],[[5,[7,5]],[4,4]]],
+      ],
+
+      [[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]],
+    )
+    puts
+    puts
+    puts result.arr.inspect
+    puts result.magnitude
 
     0
   end
