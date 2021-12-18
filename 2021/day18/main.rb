@@ -201,7 +201,7 @@ class AoC
   def initialize(data)
     # @data = data.map(&:to_i)
     # @data = data.first
-    @data = data.map {new_tree(eval(_1))}
+    @data = data.map {eval(_1)}
   end
 
   def iteratively_explore(t, &blk)
@@ -326,13 +326,7 @@ class AoC
     test_mag([[[[3,0],[5,3]],[4,4]],[5,5]] , 791)
     test_mag([[[[5,0],[7,4]],[5,5]],[6,6]] , 1137)
     test_mag([[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]] , 3488)
-    $muted = false
-  end
 
-  def one
-    basic_tests
-
-    # does not pass.
     sumup_test([
       [[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]],
       [7,[[[3,7],[4,3]],[[6,3],[8,8]]]],
@@ -355,12 +349,7 @@ class AoC
       [[[[7,8],[6,7]],[[6,8],[0,8]]],[[[7,7],[5,0]],[[5,5],[5,6]]]],
       [[[[7,7],[7,7]],[[8,7],[8,7]]],[[[7,0],[7,7]],9]],
       [[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]],
-
     ])
-
-    @data.each do |line|
-      raise "input is not safe" if needed_reducing(line)
-    end
 
     result = sumup_test(
       [
@@ -380,19 +369,35 @@ class AoC
     ).magnitude
     raise "magnitude should be 4140, it's #{result}" unless result == 4140
 
-    0
+    $muted = false
+  end
+
+  def one
+    # $muted = true
+    basic_tests
+
+    data = @data.map {new_tree(_1)}
+    data.each do |line|
+      raise "input is not safe" if needed_reducing(line)
+    end
+
+    sumup(data).magnitude
   end
 
   def two
-
-    0
+    $muted = true
+    data = @data.permutation(2).map do |arr|
+      t = new_tree(arr)
+      iteratively_explore(t)
+      t.magnitude
+    end.max
   end
 end
 
 def test(part)
   examples = [
-    0,
-    0,
+    4140,
+    3993,
   ]
 
   runner = AoC.new File.read("example.txt").split("\n")
