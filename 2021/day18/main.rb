@@ -23,26 +23,12 @@ class Node
       r.rightmost
     end
   end
-  def rightmost=(other)
-    if v
-      @v = other
-    else
-      r.rightmost = other
-    end
-  end
 
   def leftmost
     if v
       self
     else
       l.leftmost
-    end
-  end
-  def leftmost=(other)
-    if v
-      @v = other
-    else
-      r.leftmost = other
     end
   end
 
