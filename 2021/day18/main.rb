@@ -177,11 +177,12 @@ def explore(node, depth=1, &blk)
     yield
   end
 
+  # split
   if node.v&.>= 10
-    # node.convert_from_leaf(
-    #   new_tree(node.v / 2, node),
-    #   new_tree((node.v / 2.0).ceil, node),
-    # )
+    node.convert_from_leaf(
+      new_tree(node.v / 2, node),
+      new_tree((node.v / 2.0).ceil, node),
+    )
   end
 end
 
