@@ -145,18 +145,8 @@ def explode(node)
 end
 
 def explore(node, depth=1, &blk)
-  if depth < 4
-    if node.l
-      explore(node.l, depth+1, &blk)
-      explore(node.r, depth+1, &blk)
-    end
-  elsif depth == 4 && !node.v
+  if depth >= 4 && !node.v
     # puts("Reached depth level #{depth} on node #{node} - EXPLOSION TIME yo")
-
-    # if node.v
-    #   puts "- Node is a leaf node."
-    #   return
-    # end
 
     # Check if this node contains another node on the left or the right
     left = node.l
@@ -182,8 +172,11 @@ def explore(node, depth=1, &blk)
     end
   end
 
-  # split
-  if node.v&.>= 10
+  if node.l
+    explore(node.l, depth+1, &blk)
+    explore(node.r, depth+1, &blk)
+  elsif node.v >= 10
+      # split
     puts "Node value #{node.v} needs splitting — parent is #{node.parent.inspect}"
     node.birth(
       node.v / 2,
