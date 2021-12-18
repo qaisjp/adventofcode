@@ -25,7 +25,7 @@ class Node
   end
   def rightmost=(other)
     if v
-      v = other
+      @v = other
     else
       r.rightmost = other
     end
@@ -40,7 +40,7 @@ class Node
   end
   def leftmost=(other)
     if v
-      v = other
+      @v = other
     else
       r.leftmost = other
     end
@@ -90,6 +90,18 @@ class Node
     end
   end
 
+  def convert_to_leaf(value)
+    @l = nil
+    @r = nil
+    @v = value
+  end
+
+  def convert_from_leaf(left, right)
+    @l = left
+    @r = right
+    @v = nil
+  end
+
   def inspect; to_s; end
 end
 
@@ -126,8 +138,7 @@ def explode(node)
   end
 
   # Then, the entire exploding pair is replaced with the regular number 0.
-  node.l = node.r = nil
-  node.v = 0
+  node.convert_to_leaf(0)
 end
 
 def explore(node, depth=1, &blk)
@@ -136,13 +147,13 @@ def explore(node, depth=1, &blk)
       explore(node.l, depth+1, &blk)
       explore(node.r, depth+1, &blk)
     end
-  elsif depth == 4
+  elsif depth == 4 && !node.v
     puts("Reached depth level #{depth} on node #{node} - EXPLOSION TIME yo")
 
-    if node.v
-      puts "- Node is a leaf node."
-      return
-    end
+    # if node.v
+    #   puts "- Node is a leaf node."
+    #   return
+    # end
 
     # Check if this node contains another node on the left or the right
     left = node.l
@@ -164,9 +175,13 @@ def explore(node, depth=1, &blk)
     # Explode the leftmost_pair
     explode(leftmost_pair)
     yield
+  end
 
-  else
-    raise "???"
+  if node.v&.>= 10
+    # node.convert_from_leaf(
+    #   new_tree(node.v / 2, node),
+    #   new_tree((node.v / 2.0).ceil, node),
+    # )
   end
 end
 
@@ -201,6 +216,9 @@ class AoC
     test([[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]] , [[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]) { break }
     test([[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]] , [[3,[2,[8,0]]],[9,[5,[7,0]]]])
     test([[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]] , [[3,[2,[8,0]]],[9,[5,[7,0]]]])
+    test(10, [5,5])
+    test(11, [5,6])
+    test(12, [6,6])
 
     0
   end
