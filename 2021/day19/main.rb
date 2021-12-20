@@ -3,6 +3,7 @@
 
 require 'scanf'
 require 'matrix'
+require 'set'
 
 module CoordSystem
   def x; self[0]; end
@@ -14,7 +15,45 @@ module CoordSystem
 end
 
 module VectorCommon
-  OrientationsCache = {}
+end
+
+module GridCommon
+  def diffs_from_origin(idx)
+    arr = if self.class == Array
+        self
+      elsif self.class == Matrix
+        self.coords
+      else
+        raise "diffs_from_origin on Array[Vector] or Matrix only"
+      end
+
+    origin = arr[idx]
+    cols = arr.map do |x|
+      x - origin
+    end
+
+    # if self.class == Matrix
+    #   Matrix.columns(cols)
+    # else
+    cols
+    # end
+  end
+end
+
+class Vector; include CoordSystem; include VectorCommon; end
+class Matrix
+  include CoordSystem
+  include VectorCommon
+  include GridCommon
+
+  attr_accessor :scanner_index
+  alias_method :coords, :column_vectors
+
+  def find_each_offsets
+    column_count.times.map do |i|
+      self.diffs_from_origin(i)
+    end
+  end
 
   Rotations = [
     # x, y, z
@@ -42,50 +81,13 @@ module VectorCommon
   Flippers = [1, -1].repeated_permutation(3).map {Matrix.diagonal(*_1)}
   Orientations = Rotations.product(Flippers).lazy
 
+  OrientationsCache = {}
   def orientations
     # puts "Using cache" if OrientationsCache[self]
     OrientationsCache[self] ||= Orientations.map {|rotation, flip| rotation * flip * self}
   end
 end
 
-module GridCommon
-  def diffs_from_origin(idx)
-    arr = if self.class == Array
-        self
-      elsif self.class == Matrix
-        self.coords
-      else
-        raise "diffs_from_origin on Array[Vector] or Matrix only"
-      end
-
-    origin = arr[idx]
-    cols = arr.map do |x|
-      x - origin
-    end
-
-    if self.class == Matrix
-      Matrix.columns(cols)
-    else
-      cols
-    end
-  end
-end
-
-class Vector; include CoordSystem; include VectorCommon; end
-class Matrix
-  include CoordSystem
-  include VectorCommon
-  include GridCommon
-
-  attr_accessor :scanner_index
-  alias_method :coords, :column_vectors
-
-  def find_each_offsets
-    column_count.times.map do |i|
-      self.diffs_from_origin(i)
-    end
-  end
-end
 class Array
   include CoordSystem
   include GridCommon
@@ -135,7 +137,7 @@ class AoC
         if id
           points = Matrix.columns(points.sort3)
           points.scanner_index = id
-          puts "scanner loaded #{points.scanner_index}"
+          # puts "scanner loaded #{points.scanner_index}"
           # puts "--- scanner #{id} ---"
           # puts points.column_vectors.map {|coord|"#{coord.x},#{coord.y},#{coord.z}"}
           # puts
@@ -152,13 +154,12 @@ class AoC
   def one
     parse
 
-    aligned_scanners = [@scanners.pop]
-
-    origin_scanner = aligned_scanners.first
+    origin_scanner = @scanners.shift
 
     # there is no one origin_grid_offsets,
     # as each coordinate in the origin scanner can be an origin
-    all_origin_grid_offsets = origin_scanner.find_each_offsets
+    origin_all_offsets = origin_scanner.find_each_offsets
+    # raise "!" unless origin_all_offsets == Matrix.columns(origin_all_offsets.first).find_each_offsets
 
     example = [
       Vector[0, 1, 0],
@@ -166,32 +167,45 @@ class AoC
       Vector[-1, 9, -3],
     ].sort3
 
-    # For every possible `a_offsets` (list of offsets from a potential origin in a)
-    all_origin_grid_offsets.each_with_index do |a_offsets, a_origin_index|
-      done_one = false
+    while !@scanners.empty?
+      solved = false
 
-      # For every unsolved scanner
-      @scanners.filter! do |b_scanner|
-        # simulating scanner 0 and scanner 1 only
-        next false if done_one
-        done_one = true
+      # For every possible `a_offsets` (list of offsets from a potential origin in a)
+      origin_all_offsets.each_with_index do |a_offsets, a_origin_index|
+        break if solved
 
-        success = false
+        # For every unsolved scanner
+        @scanners.each_with_index do |b_scanner, b_scanner_index|
+          found_offsets = nil
 
-        # For every orientation of that scanner
-        b_scanner.orientations.each do |b_grid|
-          b_grid.find_each_offsets.each do |b_offsets|
-            intersections = count_common_points(a_offsets.coords, b_offsets.coords)
-            puts intersections if intersections > 1
+          # For every orientation of that scanner
+          b_scanner.orientations.each do |b_grid|
+            break if found_offsets
+            b_grid.find_each_offsets.each do |b_offsets|
+              intersections = a_offsets.intersection(b_offsets).size
+              if intersections >= 12
+                puts "#{intersections} for scanner #{b_scanner.scanner_index} against scanner 0"
+                found_offsets = b_offsets
+                break
+              end
+            end
+          end
+
+          if found_offsets
+            # merge a_offsets into found_offsets
+            origin_all_offsets = Matrix.columns(a_offsets.union(found_offsets)).find_each_offsets
+
+            # Don't keep trying scanners since we've solved it.
+            @scanners.delete_at(b_scanner_index)
+            solved = true
+            break
           end
         end
-
-        # Don't keep trying scanners if we've solved it.
-        !success
       end
+
     end
 
-    0
+    origin_all_offsets.first.size
   end
 
   def two
