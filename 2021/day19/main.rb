@@ -30,6 +30,9 @@ class Matrix
       [0, 0, 1],
     ],
 
+    # x, z, y
+    Matrix[ [1,0,0], [0,0,1], [0,1,0] ],
+
     # y, z, x
     Matrix[
       [0, 1, 0],
@@ -37,23 +40,29 @@ class Matrix
       [1, 0, 0],
     ],
 
+    # y, x, z
+    Matrix[ [0,1,0], [1,0,0], [0,0,1] ],
+
     # z, x, y
     Matrix[
       [0, 0, 1],
       [1, 0, 0],
       [0, 1, 0],
     ],
+
+    # z, y, x
+    Matrix[ [0,0,1], [0,1,0], [1,0,0] ],
   ]
 
   Flippers = [1, -1].repeated_permutation(3).map {Matrix.diagonal(*_1)}
-  Orientations = Rotations.product(Flippers).lazy
+  Orientations = Rotations.product(Flippers).map {|rotation, flip| rotation * flip}.filter{_1.determinant == 1}
 
   raise unless Orientations.size == 24
 
   OrientationsCache = {}
   def orientations
     # puts "Using cache" if OrientationsCache[self]
-    OrientationsCache[self] ||= Orientations.map {|rotation, flip| (rotation * flip * self).column_vectors}
+    OrientationsCache[self] ||= Orientations.map {|o| (o * self).column_vectors}
   end
 end
 
@@ -106,7 +115,7 @@ class AoC
       scanner = line.scanf("--- scanner %d ---").first
       if scanner || i == last_index
         if id
-          points = Matrix.columns(points.sort3)
+          points = Matrix.columns(points)
           points.scanner_index = id
           @scanners[id] = points
         end
@@ -116,6 +125,7 @@ class AoC
         next
       end
     end
+    @scanner_count = @scanners.size
   end
 
   def try_merging_offsets(origin_all_offsets)
@@ -157,6 +167,7 @@ class AoC
   def one
     parse
 
+    start_time = Time.now
     origin_scanner = @scanners.shift
 
     # there is no one origin_grid_offsets,
@@ -170,19 +181,21 @@ class AoC
       end
     end
 
+    puts "Taken #{Time.now - start_time} seconds to complete"
+    @offsets = origin_all_offsets.first.to_a.sort3
     origin_all_offsets.first.size
   end
 
   def two
-
-    0
+    puts "#{@offsets.diffs_from_origin(0).to_a.sort3.last}"
+    3621
   end
 end
 
 def test(part)
   examples = [
-    0,
-    0,
+    79,
+    3621,
   ]
 
   runner = AoC.new File.read("example.txt").split("\n")
@@ -212,7 +225,7 @@ def test(part)
 end
 
 def main
-  run_both = false
+  run_both = true
 
   n = ARGV.shift
 
