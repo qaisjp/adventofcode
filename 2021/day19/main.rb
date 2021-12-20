@@ -164,6 +164,7 @@ class AoC
         end
       end
     end
+    nil
   end
 
   def one
