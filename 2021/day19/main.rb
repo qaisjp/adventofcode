@@ -175,17 +175,12 @@ class AoC
     # there is no one origin_grid_offsets,
     # as each coordinate in the origin scanner can be an origin
     origin_all_offsets = origin_scanner.column_vectors.find_each_offsets
-    # raise "!" unless origin_all_offsets == Matrix.columns(origin_all_offsets.first).find_each_offsets
-
 
     while !@scanners.empty?
-
-      new_offsets = try_merging_offsets(origin_all_offsets)
-      if !new_offsets
-        raise "Not solved at all. These scanners are left: #{@scanners.map {_1.scanner_index}}"
+      origin_all_offsets = try_merging_offsets(origin_all_offsets)
+      if !origin_all_offsets
+        raise "Could not solve these scanners: #{@scanners.map {_1.scanner_index}}"
       end
-
-      origin_all_offsets = new_offsets
     end
 
     origin_all_offsets.first.size
