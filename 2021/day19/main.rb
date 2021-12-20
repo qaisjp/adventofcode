@@ -48,6 +48,8 @@ class Matrix
   Flippers = [1, -1].repeated_permutation(3).map {Matrix.diagonal(*_1)}
   Orientations = Rotations.product(Flippers).lazy
 
+  raise unless Orientations.size == 24
+
   OrientationsCache = {}
   def orientations
     # puts "Using cache" if OrientationsCache[self]
@@ -85,25 +87,10 @@ class Array
   end
 end
 
-class Set
-
-end
-
 # AoC
 class AoC
   def initialize(data)
-    # @data = data.map(&:to_i)
-    # @data = data.first
     @data = data
-  end
-
-  def count_common_points(as, bs)
-    as = as.tally
-    bs = bs.tally
-    as.sum do |key, count_a|
-      count_b = bs.fetch(key, 0)
-      [count_a, count_b].min
-    end
   end
 
   def parse
@@ -121,10 +108,6 @@ class AoC
         if id
           points = Matrix.columns(points.sort3)
           points.scanner_index = id
-          # puts "scanner loaded #{points.scanner_index}"
-          # puts "--- scanner #{id} ---"
-          # puts points.column_vectors.map {|coord|"#{coord.x},#{coord.y},#{coord.z}"}
-          # puts
           @scanners[id] = points
         end
 
@@ -136,11 +119,13 @@ class AoC
   end
 
   def try_merging_offsets(origin_all_offsets)
-    # For every possible `a_offsets` (list of offsets from a potential origin in a)
-    origin_all_offsets.each_with_index do |a_offsets, a_origin_index|
+    is_last = @scanners.size == 1
+    puts "Figuring out the last one #{@scanners.map{_1.scanner_index}} - #{origin_all_offsets.first.size}" if is_last
 
-      # For every unsolved scanner
-      @scanners.each_with_index do |b_scanner, b_scanner_index|
+    # Try to solve a scanner
+    @scanners.each_with_index do |b_scanner, b_scanner_index|
+      # For every possible `a_offsets` (list of offsets from a potential origin in a)
+      origin_all_offsets.each do |a_offsets|
 
         # For every orientation of that scanner
         b_scanner.orientations.each do |b_grid|
@@ -153,7 +138,7 @@ class AoC
 
               before = Time.now
               # merge b_offsets into a_offsets
-              new_offsets = a_offsets.union(b_offsets).to_a.find_each_offsets
+              new_offsets = (a_offsets + b_offsets).to_a.find_each_offsets
               puts "Took #{Time.now - before} seconds to recompute origin_all_offsets"
 
               # Don't keep trying scanners since we've solved it.
@@ -162,7 +147,9 @@ class AoC
             end
           end
         end
+
       end
+
     end
     nil
   end
@@ -174,7 +161,7 @@ class AoC
 
     # there is no one origin_grid_offsets,
     # as each coordinate in the origin scanner can be an origin
-    origin_all_offsets = origin_scanner.column_vectors.find_each_offsets
+    origin_all_offsets = origin_scanner.coords.find_each_offsets
 
     while !@scanners.empty?
       origin_all_offsets = try_merging_offsets(origin_all_offsets)
