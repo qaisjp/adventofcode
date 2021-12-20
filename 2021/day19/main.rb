@@ -14,46 +14,13 @@ module CoordSystem
   def z=(other); self[2] = other; end
 end
 
-module VectorCommon
-end
 
-module GridCommon
-  def diffs_from_origin(idx)
-    arr = if self.class == Array
-        self
-      elsif self.class == Matrix
-        self.coords
-      else
-        raise "diffs_from_origin on Array[Vector] or Matrix only"
-      end
-
-    origin = arr[idx]
-    cols = arr.map do |x|
-      x - origin
-    end
-
-    # if self.class == Matrix
-    #   Matrix.columns(cols)
-    # else
-    cols
-    # end
-  end
-end
-
-class Vector; include CoordSystem; include VectorCommon; end
+class Vector; include CoordSystem; end
 class Matrix
   include CoordSystem
-  include VectorCommon
-  include GridCommon
 
   attr_accessor :scanner_index
   alias_method :coords, :column_vectors
-
-  def find_each_offsets
-    column_count.times.map do |i|
-      self.diffs_from_origin(i)
-    end
-  end
 
   Rotations = [
     # x, y, z
@@ -84,13 +51,12 @@ class Matrix
   OrientationsCache = {}
   def orientations
     # puts "Using cache" if OrientationsCache[self]
-    OrientationsCache[self] ||= Orientations.map {|rotation, flip| rotation * flip * self}
+    OrientationsCache[self] ||= Orientations.map {|rotation, flip| (rotation * flip * self).column_vectors}
   end
 end
 
 class Array
   include CoordSystem
-  include GridCommon
 
   def sort3
     sort do |a, b|
@@ -103,6 +69,24 @@ class Array
       end
     end
   end
+
+  OffsetsCache = {}
+  def find_each_offsets
+    OffsetsCache[self] ||= size.times.map do |i|
+      self.diffs_from_origin(i)
+    end
+  end
+
+  def diffs_from_origin(idx)
+    origin = self[idx]
+    self.map do |x|
+      x - origin
+    end.to_set
+  end
+end
+
+class Set
+
 end
 
 # AoC
@@ -158,14 +142,9 @@ class AoC
 
     # there is no one origin_grid_offsets,
     # as each coordinate in the origin scanner can be an origin
-    origin_all_offsets = origin_scanner.find_each_offsets
+    origin_all_offsets = origin_scanner.column_vectors.find_each_offsets
     # raise "!" unless origin_all_offsets == Matrix.columns(origin_all_offsets.first).find_each_offsets
 
-    example = [
-      Vector[0, 1, 0],
-      Vector[1, 2, 3],
-      Vector[-1, 9, -3],
-    ].sort3
 
     while !@scanners.empty?
       solved = false
@@ -192,8 +171,10 @@ class AoC
           end
 
           if found_offsets
+            before = Time.now
             # merge a_offsets into found_offsets
-            origin_all_offsets = Matrix.columns(a_offsets.union(found_offsets)).find_each_offsets
+            origin_all_offsets = a_offsets.union(found_offsets).to_a.find_each_offsets
+            puts "Took #{Time.now - before} seconds to recompute origin_all_offsets"
 
             # Don't keep trying scanners since we've solved it.
             @scanners.delete_at(b_scanner_index)
@@ -203,6 +184,7 @@ class AoC
         end
       end
 
+      raise "Not solved at all. These scanners are left: #{@scanners.map {_1.scanner_index}}" unless solved
     end
 
     origin_all_offsets.first.size
