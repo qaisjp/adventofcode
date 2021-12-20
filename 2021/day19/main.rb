@@ -135,6 +135,37 @@ class AoC
     end
   end
 
+  def try_merging_offsets(origin_all_offsets)
+    # For every possible `a_offsets` (list of offsets from a potential origin in a)
+    origin_all_offsets.each_with_index do |a_offsets, a_origin_index|
+
+      # For every unsolved scanner
+      @scanners.each_with_index do |b_scanner, b_scanner_index|
+
+        # For every orientation of that scanner
+        b_scanner.orientations.each do |b_grid|
+          b_grid.find_each_offsets.each do |b_offsets|
+
+            intersections = a_offsets.intersection(b_offsets).size
+
+            if intersections >= 12
+              puts "#{intersections} for scanner #{b_scanner.scanner_index} against scanner 0"
+
+              before = Time.now
+              # merge b_offsets into a_offsets
+              new_offsets = a_offsets.union(b_offsets).to_a.find_each_offsets
+              puts "Took #{Time.now - before} seconds to recompute origin_all_offsets"
+
+              # Don't keep trying scanners since we've solved it.
+              @scanners.delete_at(b_scanner_index)
+              return new_offsets
+            end
+          end
+        end
+      end
+    end
+  end
+
   def one
     parse
 
@@ -147,44 +178,13 @@ class AoC
 
 
     while !@scanners.empty?
-      solved = false
 
-      # For every possible `a_offsets` (list of offsets from a potential origin in a)
-      origin_all_offsets.each_with_index do |a_offsets, a_origin_index|
-        break if solved
-
-        # For every unsolved scanner
-        @scanners.each_with_index do |b_scanner, b_scanner_index|
-          found_offsets = nil
-
-          # For every orientation of that scanner
-          b_scanner.orientations.each do |b_grid|
-            break if found_offsets
-            b_grid.find_each_offsets.each do |b_offsets|
-              intersections = a_offsets.intersection(b_offsets).size
-              if intersections >= 12
-                puts "#{intersections} for scanner #{b_scanner.scanner_index} against scanner 0"
-                found_offsets = b_offsets
-                break
-              end
-            end
-          end
-
-          if found_offsets
-            before = Time.now
-            # merge a_offsets into found_offsets
-            origin_all_offsets = a_offsets.union(found_offsets).to_a.find_each_offsets
-            puts "Took #{Time.now - before} seconds to recompute origin_all_offsets"
-
-            # Don't keep trying scanners since we've solved it.
-            @scanners.delete_at(b_scanner_index)
-            solved = true
-            break
-          end
-        end
+      new_offsets = try_merging_offsets(origin_all_offsets)
+      if !new_offsets
+        raise "Not solved at all. These scanners are left: #{@scanners.map {_1.scanner_index}}"
       end
 
-      raise "Not solved at all. These scanners are left: #{@scanners.map {_1.scanner_index}}" unless solved
+      origin_all_offsets = new_offsets
     end
 
     origin_all_offsets.first.size
