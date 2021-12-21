@@ -13,6 +13,10 @@ module CoordSystem
   def z=(other); self[2] = other; end
 end
 
+def bmtime
+  Process.clock_gettime(Process::CLOCK_MONOTONIC)
+end
+
 
 class Vector
   attr_accessor :src_scanner
@@ -90,7 +94,7 @@ class Array
 
   OffsetsCache = {}
   def find_each_offsets(si=nil)
-    OffsetsCache[[self,si]] ||= size.times.map do |i|
+    OffsetsCache[self] ||= size.times.map do |i|
       self.diffs_from_origin(i, si)
     end
   end
@@ -175,11 +179,11 @@ class AoC
             if intersections >= 12
               puts "#{intersections} for scanner #{b_scanner.scanner_index}"
 
-              before = Time.now
+              before = bmtime
 
               # merge b_offsets into a_offsets
               new_offsets = a_offsets.union(b_offsets).find_each_offsets
-              puts "Took #{Time.now - before} seconds to recompute origin_all_offsets"
+              puts "Took #{bmtime - before} seconds to recompute origin_all_offsets"
 
               # Don't keep trying scanners since we've solved it.
               @scanners.delete_at(b_scanner_index)
@@ -218,7 +222,7 @@ class AoC
                     completed = @scanner_count - @scanners.size
                     left = @scanners.size
                     percent = (completed.to_f / @scanner_count) * 100
-                    elapsed = Time.now - @start_time
+                    elapsed = bmtime - @start_time
                     elapsed_minutes = (elapsed / 60).round(2)
                     puts "PROGRESS: #{completed} of #{@scanner_count} completed, #{left} left, #{percent}% - #{elapsed} seconds elapsed (#{elapsed_minutes} minutes)"
                     puts; puts;
@@ -250,7 +254,7 @@ class AoC
   def one
     parse
 
-    @start_time = Time.now
+    @start_time = bmtime
     @origin_scanner_coords = @scanners.shift.coords
 
     # there is no one origin_grid_offsets,
@@ -264,7 +268,7 @@ class AoC
       end
     end
 
-    puts "Taken #{Time.now - @start_time} seconds to complete"
+    puts "Taken #{bmtime - @start_time} seconds to complete"
     @offsets = origin_all_offsets.first.to_a.sort3
     origin_all_offsets.first.size
   end
