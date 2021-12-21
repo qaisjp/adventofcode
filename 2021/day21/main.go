@@ -31,21 +31,40 @@ type PlayerPair = [2]Player
 var universesWon = [2]uint64{0, 0}
 
 type universeAndWinCache struct {
-	universes [27]Universe
+	universes []Universe
 	winPair   [2]uint64
 }
 
 var cacheUniverses = map[Universe]universeAndWinCache{}
 var cacheUses = 0
+var cacheUses2 = 0
 
 func printUniverses() {
 	timeSince := time.Since(lastPrint)
 	if timeSince > (time.Second * 2) {
 		seconds_elapsed_rounded := int(time.Since(startTime).Seconds())
 		minutes_elapsed_rounded := seconds_elapsed_rounded / 60
-		fmt.Printf("Universes won: [%d, %d] (elapsed: %d seconds, %d minutes) - cache size is %d, used %d times\n", universesWon[0], universesWon[1], seconds_elapsed_rounded, minutes_elapsed_rounded, len(cacheUniverses), cacheUses)
+		fmt.Printf("Universes won: [%d, %d] (elapsed: %d seconds, %d minutes) - cache size is %d, used %d times (and %d times for the inner loop)\n", universesWon[0], universesWon[1], seconds_elapsed_rounded, minutes_elapsed_rounded, len(cacheUniverses), cacheUses, cacheUses2)
 		lastPrint = time.Now()
 	}
+}
+
+func applyFromCache(universe Universe, newUniverses *[]Universe, secondCounter bool) bool {
+	cache, ok := cacheUniverses[universe]
+	if !ok {
+		return false
+	}
+
+	universesWon[0] += cache.winPair[0]
+	universesWon[1] += cache.winPair[1]
+	*newUniverses = append(*newUniverses, cache.universes...)
+	if secondCounter {
+		cacheUses2++
+	} else {
+		cacheUses++
+	}
+	// fmt.Println("Using cache")
+	return true
 }
 
 func main() {
@@ -60,7 +79,6 @@ func main() {
 
 	newUniverses := make([]Universe, 0, 1000)
 
-	var dieRollUniverses [27]Universe
 	var winPair [2]uint64
 
 	for len(universes) > 0 {
@@ -69,12 +87,8 @@ func main() {
 		for _, universe := range universes {
 			// fmt.Printf("Processing universe %v\n", universe)
 			printUniverses()
-			if cache, ok := cacheUniverses[universe]; ok {
-				universesWon[0] += cache.winPair[0]
-				universesWon[1] += cache.winPair[1]
-				newUniverses = append(newUniverses, cache.universes[:]...)
-				cacheUses += 1
-				// fmt.Println("Using cache")
+
+			if applyFromCache(universe, &newUniverses, false) {
 				continue
 			}
 
@@ -88,7 +102,9 @@ func main() {
 
 			winPair[0] = 0
 			winPair[1] = 0
-			for i, moves := range dieRolls {
+
+			dieRollUniverses := []Universe{}
+			for _, moves := range dieRolls {
 				newPos := (player.Position + moves) % 10
 				newScore := player.Score + newPos + 1
 
@@ -102,10 +118,13 @@ func main() {
 				newUniverse := universe
 				newUniverse.NextPlayer = !newUniverse.NextPlayer
 				newUniverse.Players[playerIndex] = Player{newPos, newScore}
-				dieRollUniverses[i] = newUniverse
+
+				if !applyFromCache(newUniverse, &dieRollUniverses, true) {
+					dieRollUniverses = append(dieRollUniverses, newUniverse)
+				}
 			}
 
-			newUniverses = append(newUniverses, dieRollUniverses[:]...)
+			newUniverses = append(newUniverses, dieRollUniverses...)
 			cacheUniverses[universe] = universeAndWinCache{dieRollUniverses, winPair}
 		}
 
