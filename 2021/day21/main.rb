@@ -65,6 +65,12 @@ class AoC
       ]
     ]
 
+    cache_winners = {
+      # [pos1, score1, pos2, score2] => 0 or 1 for the winner
+    }
+
+    @trs_cache = {}
+
     while !universes.empty?
       universes = universes.flat_map do |universe|
         maybe_p
@@ -73,13 +79,20 @@ class AoC
         player_index = universe[2] ? 0 : 1
         pos, score = universe[player_index]
 
+        memo_key = universe[0] + universe[1]
+        if cache_winners[memo_key]
+          # puts "using memo"
+        end
+        cache_winners[memo_key] = 0
+
         universe[2] = !universe[2]
 
-        ThreeRollSums.filter_map do |moves|
+        @trs_cache[memo_key] ||= ThreeRollSums.filter_map do |moves|
           new_pos = (pos + moves) % 10
           new_score = score + new_pos + 1
 
           if new_score >= 21
+
            @universes_won[player_index] += 1
             next
           end
