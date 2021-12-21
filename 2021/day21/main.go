@@ -30,12 +30,20 @@ type PlayerPair = [2]Player
 
 var universesWon = [2]uint64{0, 0}
 
+type universeAndWinCache struct {
+	universes [27]Universe
+	winPair   [2]uint64
+}
+
+var cacheUniverses = map[Universe]universeAndWinCache{}
+var cacheUses = 0
+
 func printUniverses() {
 	timeSince := time.Since(lastPrint)
 	if timeSince > (time.Second * 2) {
 		seconds_elapsed_rounded := int(time.Since(startTime).Seconds())
 		minutes_elapsed_rounded := seconds_elapsed_rounded / 60
-		fmt.Printf("Universes won: [%d, %d] (elapsed: %d seconds, %d minutes)\n", universesWon[0], universesWon[1], seconds_elapsed_rounded, minutes_elapsed_rounded)
+		fmt.Printf("Universes won: [%d, %d] (elapsed: %d seconds, %d minutes) - cache size is %d, used %d times\n", universesWon[0], universesWon[1], seconds_elapsed_rounded, minutes_elapsed_rounded, len(cacheUniverses), cacheUses)
 		lastPrint = time.Now()
 	}
 }
@@ -54,11 +62,6 @@ func main() {
 
 	var dieRollUniverses [27]Universe
 	var winPair [2]uint64
-	type universeAndWinCache struct {
-		universes [27]Universe
-		winPair   [2]uint64
-	}
-	var cacheUniverses = map[Universe]universeAndWinCache{}
 
 	for len(universes) > 0 {
 		newUniverses = newUniverses[:0]
@@ -70,6 +73,7 @@ func main() {
 				universesWon[0] += cache.winPair[0]
 				universesWon[1] += cache.winPair[1]
 				newUniverses = append(newUniverses, cache.universes[:]...)
+				cacheUses += 1
 				// fmt.Println("Using cache")
 				continue
 			}
