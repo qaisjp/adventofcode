@@ -52,7 +52,7 @@ class Range
     end
 
     result2 = result.filter {_1.begin < _1.end}
-    puts "#{result} became #{result2} for cutting #{subrange} from #{self}" if result != result2
+    # puts "#{result} became #{result2} for cutting #{subrange} from #{self}" if result != result2
     # puts "real result is #{result}"
     result2
   end
@@ -86,9 +86,9 @@ class AoC
     @data.each do |line|
       state, xr, yr, zr = line
 
-      xr = xfix & xr
-      yr = yfix & yr
-      zr = zfix & zr
+      # xr = xfix & xr
+      # yr = yfix & yr
+      # zr = zfix & zr
 
       next unless xr && yr && zr
 
@@ -97,10 +97,10 @@ class AoC
       else
         onners.flat_map do |ranges|
           res = []
-          ranges[0].delete_subrange(xr).each do |x|
-            ranges[1].delete_subrange(yr).each do |y|
-              ranges[2].delete_subrange(zr).each do |z|
-                res << [x, y, z]
+          ranges[0].delete_subrange(xr).each do |xr|
+            ranges[1].delete_subrange(yr).each do |yr|
+              ranges[2].delete_subrange(zr).each do |zr|
+                res << [xr, yr, zr]
               end
             end
           end
@@ -109,19 +109,32 @@ class AoC
       end
     end
 
-    grid = Set[]
+    processed = []
+    size = 0
     onners.each do |ranges|
-      ranges[0].each do |x|
-        ranges[1].each do |y|
-          ranges[2].each do |z|
-            grid << [x, y, z]
+      xr, yr, zr = ranges
+      xrs = [xr]
+      yrs = [yr]
+      zrs = [zr]
+
+      processed.each do |r|
+        xor, yor, zor = r
+        xrs = xrs.flat_map {|xr| xr.delete_subrange(xor)}
+        yrs = yrs.flat_map {|yr| yr.delete_subrange(yor)}
+        zrs = zrs.flat_map {|zr| zr.delete_subrange(zor)}
+      end
+
+      xrs.each do |xr|
+        yrs.each do |yr|
+          zrs.each do |zr|
+            size += xr.size * yr.size * zr.size
+            processed << [xr, yr, zr]
           end
         end
       end
     end
 
-    # onners.map {|x, y, z| x.size * y.size * z.size}.sum
-    grid.size
+    size
   end
 
   def two
@@ -169,7 +182,7 @@ def main
 
   if !test(n)
     puts "Tests failed :("
-    return
+    # return
   end
 
   if ARGV.empty?
