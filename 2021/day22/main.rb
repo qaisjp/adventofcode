@@ -40,12 +40,13 @@ class Range
       # -20     20
       #             30 ... 40
       result << self
+      result << subrange
     elsif min_in_range
       # -20            20
       #       -2   ..     30
 
       result << (min .. (subrange.min - 1))
-    elsif self.cover?(subrange.max)
+    elsif max_in_range
       #        -10            20
       #  -20   ..     10
       result << ((subrange.min + 1) .. self.max)
@@ -85,6 +86,7 @@ class AoC
 
     @data.each do |line|
       state, xr, yr, zr = line
+      puts "Doing #{line}"
 
       # xr = xfix & xr
       # yr = yfix & yr
@@ -95,7 +97,7 @@ class AoC
       if state
         onners << [xr, yr, zr]
       else
-        onners.flat_map do |ranges|
+        onners = onners.flat_map do |ranges|
           res = []
           ranges[0].delete_subrange(xr).each do |xr|
             ranges[1].delete_subrange(yr).each do |yr|
@@ -109,21 +111,30 @@ class AoC
       end
     end
 
-    processed = []
+    puts "Processing #{onners.size} onners"
+    max_onners = onners.size.to_f
+    processed = Set[]
     size = 0
-    onners.each do |ranges|
-      xr, yr, zr = ranges
-      xrs = [xr]
-      yrs = [yr]
-      zrs = [zr]
 
+    now = Time.now
+    onners.each_with_index do |ranges, index|
+      xr, yr, zr = ranges
+      xrs = Set[xr]
+      yrs = Set[yr]
+      zrs = Set[zr]
+
+      if (Time.now - now) > 2
+        puts "Processed size is #{processed.size} - onner #{index} - #{ranges} - #{index/max_onners * 100}% done"
+        now = Time.now
+      end
       processed.each do |r|
         xor, yor, zor = r
-        xrs = xrs.flat_map {|xr| xr.delete_subrange(xor)}
-        yrs = yrs.flat_map {|yr| yr.delete_subrange(yor)}
-        zrs = zrs.flat_map {|zr| zr.delete_subrange(zor)}
+        xrs = xrs.flat_map {|xr| xr.delete_subrange(xor)}.to_set
+        yrs = yrs.flat_map {|yr| yr.delete_subrange(yor)}.to_set
+        zrs = zrs.flat_map {|zr| zr.delete_subrange(zor)}.to_set
+        # puts "xrs is #{xrs} yrs #{yrs} zrs #{zrs}"
       end
-
+      # puts "Now doing #{xrs} and #{yrs} and #{zrs}"
       xrs.each do |xr|
         yrs.each do |yr|
           zrs.each do |zr|
@@ -180,10 +191,10 @@ def main
 
   n = ARGV.shift
 
-  if !test(n)
+  # if !test(n)
     puts "Tests failed :("
     # return
-  end
+  # end
 
   if ARGV.empty?
     runner = AoC.new File.read("input.txt").split("\n")
