@@ -2,9 +2,11 @@
 # typed: true
 
 require 'scanf'
+require 'set'
 
 # AoC
 class AoC
+
 
   def initialize(data)
     # @data = data.map(&:to_i)
@@ -12,6 +14,7 @@ class AoC
     @data = data
   end
 
+  EG1 = 0
   def one
     @data.each do |line|
       puts "X: #{line}"
@@ -20,6 +23,7 @@ class AoC
     0
   end
 
+  EG2 = 0
   def two
 
     0
@@ -27,15 +31,10 @@ class AoC
 end
 
 def test(part)
-  examples = [
-    0,
-    0,
-  ]
-
   runner = AoC.new File.read("example.txt").split("\n")
 
   one = runner.one
-  this = examples.first
+  this = EG1
   if one != this
     puts "Example part 1 was #{one}, expected #{this}"
   else
@@ -46,7 +45,7 @@ def test(part)
   if passed
     puts "\n\n--- Example part 2"
     two = runner.two
-    this = examples.last
+    this = EG2
     if two != this
       puts "\n\nExample part 2 was #{two}, expected #{this}"
       passed = false
