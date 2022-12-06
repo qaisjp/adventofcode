@@ -15,12 +15,9 @@ class AoC
   end
 
   def process(line, trail)
-    puts("Processing #{line}")
     (trail..line.size).each do |i|
       four = line[i - trail..i].chars
-      puts("four is #{four}")
       if four == four.uniq
-        puts("found #{i} is #{four}")
         return i + 1
       end
     end
