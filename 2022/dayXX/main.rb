@@ -34,7 +34,7 @@ def test(part)
   runner = AoC.new File.read("example.txt").split("\n")
 
   one = runner.one
-  this = EG1
+  this = AoC::EG1
   if one != this
     puts "Example part 1 was #{one}, expected #{this}"
   else
@@ -45,7 +45,7 @@ def test(part)
   if passed
     puts "\n\n--- Example part 2"
     two = runner.two
-    this = EG2
+    this = AoC::EG2
     if two != this
       puts "\n\nExample part 2 was #{two}, expected #{this}"
       passed = false
