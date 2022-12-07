@@ -25,10 +25,13 @@ class AoC
   end
 
   EG1 = 95437
+  WRITE_FS = true
   def one
     prefix = Pathname.new('/')
-    # `rm -rf aoc-fs`
-    # `mkdir aoc-fs`
+    if WRITE_FS
+      `rm -rf aoc-fs`
+      `mkdir aoc-fs`
+    end
 
     active_cmd = nil
     files = {}
@@ -56,10 +59,12 @@ class AoC
         else
           size, path = line.scanf("%d %s")
           puts("- Updating files[#{prefix.join(path)}]=#{size}")
-          # fsp = Pathname.new("aoc-fs").join(Pathname.new(prefix.join(path).to_s.delete_prefix("/")))
-          # `mkdir -p "#{fsp.dirname}"`
-          # puts("fsp is #{fsp}")
-          # fsp.write("a" * size)
+          if WRITE_FS
+            fsp = Pathname.new("aoc-fs").join(Pathname.new(prefix.join(path).to_s.delete_prefix("/")))
+            `mkdir -p "#{fsp.dirname}"`
+            puts("fsp is #{fsp}")
+            fsp.write("a" * size)
+          end
           if files[prefix.join(path)]
             raise("it exists #{path}")
           end
