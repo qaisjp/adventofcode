@@ -102,7 +102,7 @@ class AoC
   def two
     size_free = 70000000 - @counts[Pathname.new("/")]
     puts("space remaining: #{size_free}")
-    want = 40000000
+    want = 30000000
     answers = []
     @counts.each do |p, c|
       actual = size_free + c
