@@ -8,23 +8,11 @@ require 'pathname'
 # AoC
 class AoC
   def initialize(data)
-    # @data = data.map(&:to_i)
-    # @data = data.first
     @data = data
   end
 
-  def recurse(paths, sum=0)
-    if paths.size == 1
-      return sum
-    end
-    paths = paths.group_by {|k,v| k.dirname}.transform_values {_1.sum{|k,v| v}}
-    puts("PATHS WERE #{paths}")
-    sum += paths.sum{_2}
-    recurse(paths, sum)
-  end
-
   EG1 = 95437
-  WRITE_FS = true
+  WRITE_FS = false
   def one
     prefix = Pathname.new('/')
     if WRITE_FS
@@ -34,9 +22,10 @@ class AoC
 
     active_cmd = nil
     files = {}
-    max_bytes = 0
     @data.each do |line|
       puts("Line: #{line}")
+      
+      # Process command line
       if line.start_with?('$ cd ')
         active_cmd = nil
         path = line.delete_prefix('$ cd ')
@@ -53,29 +42,27 @@ class AoC
         next
       end
 
+      # Process command response
       if active_cmd == "ls"
         if line.start_with?("dir ")
+          # Ignore directories
         else
           size, path = line.scanf("%d %s")
-          puts("- Updating files[#{prefix.join(path)}]=#{size}")
+          puts("- #{prefix.join(path)} = #{size}")
+
           if WRITE_FS
             fsp = Pathname.new("aoc-fs").join(Pathname.new(prefix.join(path).to_s.delete_prefix("/")))
             `mkdir -p "#{fsp.dirname}"`
             puts("fsp is #{fsp}")
             fsp.write("a" * size)
           end
-          if files[prefix.join(path)]
-            raise("it exists #{path}")
-          end
-          max_bytes += size
+
           files[prefix.join(path)] = size
         end
       else
         raise "??? #{line}"
       end
     end
-
-    puts("MAX BYTES #{max_bytes}")
 
     counts = Hash.new(0)
     files.each do |f, c|
@@ -84,15 +71,13 @@ class AoC
       end
     end
     @files = files
-    @counts = counts.dup
+    @counts = counts
 
-    puts("ORIG FILES #{files}")
-    puts("COUNTS #{counts}")
     ans = counts.map{_2}.sum do |c|
       if c <= 100000
-      c
+        c
       else
-      0
+        0
       end
     end
     ans
@@ -101,7 +86,6 @@ class AoC
   EG2 = 24933642
   def two
     size_free = 70000000 - @counts[Pathname.new("/")]
-    puts("space remaining: #{size_free}")
     want = 30000000
     answers = []
     @counts.each do |p, c|
@@ -114,6 +98,11 @@ class AoC
     answers.min
   end
 end
+
+
+#####
+##### BOILERPLATE
+#####
 
 def test(_part)
   runner = AoC.new File.read('example.txt').split("\n")
