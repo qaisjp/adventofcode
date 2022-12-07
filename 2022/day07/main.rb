@@ -84,6 +84,7 @@ class AoC
       end
     end
     @files = files
+    @counts = counts.dup
 
     puts("ORIG FILES #{files}")
     puts("COUNTS #{counts}")
@@ -94,7 +95,6 @@ class AoC
       0
       end
     end
-    @counts = counts
     ans
   end
 
