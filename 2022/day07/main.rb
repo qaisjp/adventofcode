@@ -96,14 +96,13 @@ class AoC
 
   EG2 = 24933642
   def two
-    size = @counts[Pathname.new("/")]
-    real_size = @files.values.sum
-    puts("size: #{size}, real: #{real_size}")
-    want = 30000000
+    size_free = 70000000 - @counts[Pathname.new("/")]
+    puts("space remaining: #{size_free}")
+    want = 40000000
     answers = []
     @counts.each do |p, c|
-      actual = size - c
-      if actual <= want
+      actual = size_free + c
+      if actual >= want
         puts("p -> #{p} #{c}")
         answers << c
       end
