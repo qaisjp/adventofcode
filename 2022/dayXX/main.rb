@@ -6,8 +6,6 @@ require 'set'
 
 # AoC
 class AoC
-
-
   def initialize(data)
     # @data = data.map(&:to_i)
     # @data = data.first
@@ -25,13 +23,16 @@ class AoC
 
   EG2 = 0
   def two
-
     0
   end
 end
 
-def test(part)
-  runner = AoC.new File.read("example.txt").split("\n")
+#####
+##### BOILERPLATE
+#####
+
+def test(_part)
+  runner = AoC.new File.read('example.txt').split("\n")
 
   one = runner.one
   this = AoC::EG1
