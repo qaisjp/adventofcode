@@ -25,7 +25,7 @@ end
 # AoC
 class AoC
   include Term::ANSIColor
-  
+
   def initialize(data)
     @size = data.size
     y = -1
@@ -60,15 +60,11 @@ class AoC
   def rotate_anticlockwise(g)
     g.transpose.reverse
   end
-
-  # [y, x] is on a grid g. the grid g is rotated 90 degrees anticlockwise. the
-  # returned coordinates coorespond to the same coordinate on the new grid
-  #
-  # so, given y=3, x=2, it should return [2, 3]
   def move_coordinate_anticlockwise(y, x)
     [@size - 1 - x, y]
   end
 
+  # part 1
   def find_points(g)
     points = {}
     g.each do |cells|
@@ -119,6 +115,7 @@ class AoC
     result.size
   end
 
+  # part 2
   def score(y, start_x)
     degrees = [0, 90, 180, 270]
     src_coord = [y, start_x]
