@@ -3,6 +3,7 @@
 
 require 'scanf'
 require 'set'
+require 'term/ansicolor'
 
 module Kernel
   alias_method :print_orig, :print
@@ -23,6 +24,8 @@ end
 
 # AoC
 class AoC
+  include Term::ANSIColor
+  
   def initialize(data)
     @size = data.size
     y = -1
@@ -41,11 +44,17 @@ class AoC
     end
   end
 
-  def printg(g)
+  def printg(g, bold: nil)
     # return if Kernel.shush
-    puts
-    puts g.map {|cells| cells.map(&:first).join}.join("\n")
-    puts
+    puts(g.each_with_index.map do |cells, y|
+      cells.each_with_index.map do |pair, x|
+        if bold == [y, x]
+          bold(red(pair.first.to_s))
+        else
+          pair[0]
+        end
+      end.join
+    end.join("\n"))
   end
 
   def rotate_anticlockwise(g)
@@ -101,7 +110,9 @@ class AoC
     @grids.each_with_index do |g, deg|
       puts
       puts("== Rotated #{degrees[deg]} degrees")
+      puts
       printg(g)
+      puts
       result.merge!(find_points(g))
     end
     
@@ -112,37 +123,52 @@ class AoC
     degrees = [0, 90, 180, 270]
     src_coord = [y, start_x]
     score = 1
+    puts
+    puts
+    puts("-----------------------------------------")
+    puts("For src_coord #{src_coord}")
     @grids.each_with_index do |g, deg|
       puts
-      puts("== Rotated #{degrees[deg]} degrees")
-      # printg(g)
-
+      print("== Rotated #{degrees[deg]} degrees")
+      
       points = {}
       pointcount = 0
       this_height, orig_coord = g[y][start_x]
       raise "??? coord mismatch" unless orig_coord == src_coord
-      puts("Point under consideration: #{this_height} at #{[y, start_x]} (originally #{orig_coord})")
+      puts(": #{this_height} at #{[y, start_x]}")
       max_seen = -1
-
+      
+      printg(g, bold: [y, start_x])
       print("Looking at ")
-      ((start_x+1)...@size).each do |x|
+      startn = (start_x+1)
+      if @size == startn
+        print(italic{"<hit end>"})
+      end
+      (startn...@size).each do |x|
         v, coords = g[y][x]
-        print(v)
+        # print(v)
         if v >= max_seen
           max_seen = v
           # points[coords] = true
           pointcount += 1
-          if v > this_height
+          if v >= this_height
+            print(bright_red {v})
             break
+          else
+            print(bright_green {v})
           end
+        else
+          print(v)
         end
       end
       y, start_x = move_coordinate_anticlockwise(y, start_x)
-      puts
+      puts(reset)
       puts("Points seen: #{pointcount}")
 
       score *= pointcount
     end
+    puts
+    puts("Score: #{score}")
     score
   end
 
