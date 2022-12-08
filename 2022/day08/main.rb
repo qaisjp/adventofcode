@@ -137,7 +137,9 @@ class AoC
       puts(": #{this_height} at #{[y, start_x]}")
       max_seen = -1
 
-      printg(g, bold: [y, start_x])
+      # printg is too expensive
+      # printg(g, bold: [y, start_x])
+
       print("Looking at ")
       startn = (start_x+1)
       if @size == startn
