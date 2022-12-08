@@ -130,14 +130,13 @@ class AoC
     @grids.each_with_index do |g, deg|
       puts
       print("== Rotated #{degrees[deg]} degrees")
-      
-      points = {}
+
       pointcount = 0
       this_height, orig_coord = g[y][start_x]
       raise "??? coord mismatch" unless orig_coord == src_coord
       puts(": #{this_height} at #{[y, start_x]}")
       max_seen = -1
-      
+
       printg(g, bold: [y, start_x])
       print("Looking at ")
       startn = (start_x+1)
@@ -146,19 +145,12 @@ class AoC
       end
       (startn...@size).each do |x|
         v, coords = g[y][x]
-        # print(v)
-        if v >= max_seen
-          max_seen = v
-          # points[coords] = true
-          pointcount += 1
-          if v >= this_height
-            print(bright_red {v})
-            break
-          else
-            print(bright_green {v})
-          end
+        pointcount += 1
+        if v >= this_height
+          print(bright_red {v})
+          break
         else
-          print(v)
+          print(bright_green {v})
         end
       end
       y, start_x = move_coordinate_anticlockwise(y, start_x)
