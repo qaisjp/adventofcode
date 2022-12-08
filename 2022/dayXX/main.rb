@@ -74,7 +74,7 @@ def main
     runner = AoC.new ARGF.readlines.to_a
   end
 
-  puts "\n\n--- Part #{n} solution" if n != ""
+  puts "\n\n--- Part #{n} solution" if n != nil
   if n == '1' || (run_both && n == '2')
     puts "Result 1: #{runner.one}"
   end
