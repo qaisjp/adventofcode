@@ -82,15 +82,15 @@ class AoC
       end
 
       # right to left
-      max = -1
-      cells.reverse.each do |p|
-        v, coords = p
-        if v > max
-          # we've hit this point
-          nowp[coords] = true
-          max = v
-        end
-      end
+      # max = -1
+      # cells.reverse.each do |p|
+      #   v, coords = p
+      #   if v > max
+      #     # we've hit this point
+      #     nowp[coords] = true
+      #     max = v
+      #   end
+      # end
 
       points.merge!(nowp)
 
