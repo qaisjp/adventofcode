@@ -88,7 +88,7 @@ def test(_part)
 end
 
 def main
-  run_both = false
+  run_both = T.let(false, T::Boolean)
 
   n = ARGV.shift
 

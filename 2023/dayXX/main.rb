@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-# typed: true
+# typed: false
 
 require 'scanf'
 require 'set'
@@ -7,9 +7,9 @@ require 'set'
 # AoC
 class AoC
   def initialize(data)
-    # @data = data.map(&:to_i)
-    # @data = data.first
-    @data = data
+    # @data = T.let(data.map(&:to_i), T::Array[Integer])
+    # @data = T.let(data.first, String)
+    @data = T.let(data, T::Array[String])
   end
 
   EG1 = 0
@@ -59,7 +59,7 @@ def test(_part)
 end
 
 def main
-  run_both = false
+  run_both = T.let(false, T::Boolean)
 
   n = ARGV.shift
 
