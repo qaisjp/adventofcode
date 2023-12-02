@@ -16,16 +16,42 @@ class AoC
   def one
     @data.sum do |line|
       nums = line.chars.filter {|c| c.match?(/[0-9]/) }.map(&:to_i)
-      puts("line is #{line} splitted is #{nums}")
       "#{nums[0]}#{nums[-1]}".to_i
     end
   end
 
-  EG2 = 0
+  EG2 = 281
   def two
     @data.sum do |line|
       num_from_line(line)
     end
+  end
+
+  def num_from_line(line)
+    words = ["_", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+
+    first_regex = /[0-9]|one|two|three|four|five|six|seven|eight|nine/
+    last_regex = Regexp.new("[0-9]|" + "one|two|three|four|five|six|seven|eight|nine".reverse)
+    f = line[first_regex]
+    if words.include?(f)
+      f = words.index(f)
+    else
+      f.to_i
+    end
+
+    l = line.reverse[last_regex]
+    puts("l is #{l.inspect}")
+    puts("line is #{line.inspect}")
+
+    if words.include?(l.reverse)
+      l = words.index(l.reverse)
+    else
+      l.to_i
+    end
+
+    final = "#{f}#{l}".to_i
+    puts("final for line #{line} is #{final}")
+    final
   end
 end
 
