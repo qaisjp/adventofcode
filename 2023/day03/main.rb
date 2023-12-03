@@ -102,12 +102,6 @@ class AoC
       end
     end
 
-    # puts "chunks: #{our_chunks}"
-
-    
-
-    # binding.pry
-
     our_chunks.sum(&:num)
   end
 
