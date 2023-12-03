@@ -1,11 +1,12 @@
 # frozen_string_literal: true
-# typed: false
+# typed: true
 
 require 'scanf'
 require 'set'
-
+require 'sorbet-runtime'
 # AoC
 class AoC
+  extend T::Sig
   def initialize(data)
     # @data = T.let(data.map(&:to_i), T::Array[Integer])
     # @data = T.let(data.first, String)

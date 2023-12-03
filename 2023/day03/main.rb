@@ -14,6 +14,8 @@ class AoC
     # @data = T.let(data.map(&:to_i), T::Array[Integer])
     # @data = T.let(data.first, String)
     @data = T.let(data, T::Array[String])
+    @symbol_coords = T.let([], T::Array[[Integer, Integer]])
+    @chunks = T.let([], T::Array[Chunk])
   end
 
   Coord = T.type_alias { [Integer, Integer] }
@@ -61,9 +63,6 @@ class AoC
   end
 
   def one
-    chunks = T::Array[Chunk].new
-    symbol_coords = []
-
     @data.each_with_index do |line, y|
       cur_num = T.let(nil, T.nilable(String))
       cur_coords = []
@@ -75,11 +74,11 @@ class AoC
           cur_coords << [y, x]
         else
           if char != "."
-            symbol_coords << [y, x]
+            @symbol_coords << [y, x]
           end
 
           if cur_num
-            chunks << Chunk.new(num: cur_num.to_i, coords: cur_coords)
+            @chunks << Chunk.new(num: cur_num.to_i, coords: cur_coords)
           end
           cur_num = nil
           cur_coords = []
@@ -87,23 +86,23 @@ class AoC
       end
 
       if cur_num
-        chunks << Chunk.new(num: cur_num.to_i, coords: cur_coords)
+        @chunks << Chunk.new(num: cur_num.to_i, coords: cur_coords)
       end
       cur_num = nil
       cur_coords = []
     end
 
-    find_coords = symbol_coords.map do |y, x|
+    find_coords = @symbol_coords.map do |y, x|
       around([y, x])
     end.flatten(1)
 
-    our_chunks = chunks.filter do |chunk|
+    our_chunks = @chunks.filter do |chunk|
       chunk.coords.any? do |coord|
         find_coords.include?(coord)
       end
     end
 
-    puts "chunks: #{our_chunks}"
+    # puts "chunks: #{our_chunks}"
 
     
 
@@ -112,9 +111,22 @@ class AoC
     our_chunks.sum(&:num)
   end
 
-  EG2 = 0
+  RUN_BOTH = T.let(true, T::Boolean)
+  EG2 = 467835
   def two
-    0
+    num = 0
+    @symbol_coords.each do |coord|
+      haystack = around(coord)
+      chunks = @chunks.filter do |chunk|
+        chunk.coords.any? do |needle|
+          haystack.include?(needle)
+        end
+      end
+      if chunks.size == 2
+        num += chunks.map(&:num).inject(&:*)
+      end
+    end
+    num
   end
 end
 
@@ -150,7 +162,7 @@ def test(_part)
 end
 
 def main
-  run_both = T.let(false, T::Boolean)
+
 
   n = ARGV.shift
 
@@ -166,7 +178,7 @@ def main
   end
 
   puts "\n\n--- Part #{n} solution" if n != nil
-  if n == '1' || (run_both && n == '2')
+  if n == '1' || (AoC::RUN_BOTH && n == '2')
     puts "Result 1: #{runner.one}"
   end
   if n == '2'
