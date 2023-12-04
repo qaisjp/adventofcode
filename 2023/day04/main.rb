@@ -33,8 +33,6 @@ class AoC
   EG2 = 30
   def two
     max_card_num = @data.size
-    # card num to card count
-    card_counts = T::Hash[Integer, Integer].new {0}
     
     cards_to_process = @data.dup
     card_index = 0
