@@ -39,7 +39,7 @@ class AoC
     cards_to_process = @data.dup
     card_index = 0
     max_size = cards_to_process.size
-    matches = {}
+    matches_memo = {}
 
     while card_index < max_size do
       line = cards_to_process[card_index]
@@ -47,17 +47,20 @@ class AoC
       haystack, needles = line.split(" | ")
       card, haystack = haystack.split(":")
       card, = card.scanf("Card %d")
-      haystack = haystack.strip.split.map(&:to_i)
-      needles = needles.split.map(&:to_i)
-      
-      overlap = (haystack & needles)
-      matches = overlap.size
+
+      matches = matches_memo[card]
+      if !matches
+        haystack = haystack.strip.split.map(&:to_i)
+        needles = needles.split.map(&:to_i)
+
+        overlap = (haystack & needles)
+        matches = overlap.size
+        matches_memo[card] = matches
+      end
 
       (card+1 .. (card+matches)).each do |card_num|
-        puts("From card #{card}, adding #{card_num}")
         cards_to_process << cards_to_process[card_num-1]
         max_size += 1
-        # card_counts[card_num] += 1
       end
 
       card_index += 1
