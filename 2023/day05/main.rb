@@ -167,7 +167,11 @@ class AoC
   end
 
   EG2 = 46
+  BRUTE = false
   def two
+    if BRUTE
+      return two_brute
+    end
     puts("Seeds was #{@seeds.inspect}")
 
     seed_rngs = @seeds.each_slice(2).map do |start, len|
