@@ -48,6 +48,7 @@ PLATFORMS
   arm64-darwin-21
 
 DEPENDENCIES
+  parallel (~> 1.23)
   rake (~> 13.0)
   sorbet
   sorbet-runtime
