@@ -15,12 +15,28 @@ class AoC
     @maps = T.let(data[1..], T::Array[String])
   end
 
+  def num_for_cat(cat, num)
+    catmap = T.let(@category_map, T::Hash[String, T::Hash[Range, Range]])
+    range_rules = T.must(catmap[cat])
+
+    src_rng, dst_rng = range_rules.find do |src_rng, dst_rng|
+      src_rng.include?(num)
+    end
+
+    if !src_rng
+      return num
+    end
+
+    offset = num - src_rng.begin
+    dst_rng.begin + offset
+  end
+
   EG1 = 35
   def one
     # puts(@seeds)
 
-    category_map = T::Hash[String, T::Hash[Integer, Integer]].new do |h, k|
-      h[k] = T::Hash[Integer, Integer].new { |h, k| k }
+    @category_map = T::Hash[String, T::Hash[Range, Range]].new do |h, k|
+      h[k] = T::Hash[Range, Range].new
     end
 
     categories = %w[seed soil fertilizer water light temperature humidity location]
@@ -30,20 +46,18 @@ class AoC
       src_cat, dst_cat = T.must(header).gsub("-to-", " ").scanf("%s %s")
 
       rest.each do |line|
-        dst_rng_start, src_rng_end, rng_len = line.scanf("%d %d %d")
+        dst_rng_start, src_rng_start, rng_len = line.scanf("%d %d %d")
 
-        rng_len.times do |n|
-          src = src_rng_end + n
-          dst = dst_rng_start + n
-          category_map[src_cat][src] = dst
-        end
+        @category_map[src_cat][src_rng_start ... (src_rng_start + rng_len)] = dst_rng_start ... (dst_rng_start + rng_len)
       end
     end
 
+    
+
     @seeds.map do |seed|
       curno = seed
-      categories.each_with_index do |cat, cat_i|
-        curno = category_map[cat][curno]
+      categories.each do |cat|
+        curno = num_for_cat(cat, curno)
       end
       # puts("For seed #{seed} got #{curno}")
       curno
