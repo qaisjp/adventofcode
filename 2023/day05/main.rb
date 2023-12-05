@@ -5,6 +5,7 @@ require 'scanf'
 require 'set'
 require 'sorbet-runtime'
 require 'pry'
+require 'parallel'
 
 # https://gist.github.com/senorprogrammer/1058413
 class Range
@@ -83,20 +84,29 @@ class AoC
     seed_rngs = @seeds.each_slice(2).map do |start, len|
       (start ... (start + len))
     end
-
     
     puts("one is done... #{one}")
-    seed_rngs.map do |rng|
-      puts("Working on #{rng}")
-      rng.map do |seed|
+    sleep 5
+    puts("max rng index: #{seed_rngs.size-1}")
+    Parallel.map_with_index(seed_rngs) do |rng,ri|
+      puts("#{ri} #{rng}: computing array")
+      # arr = rng.to_a
+      size = rng.size.to_f
+      `echo h-#{size} > results.txt`
+      puts("#{ri}: computed array (size #{size})")
+      m = Parallel.map_with_index(rng) do |seed, i|
+        # puts("#{ri}: #{i/size*100}%") if i % 100000 == 0
         curno = seed
         @categories.each do |cat|
           curno = num_for_cat(cat, curno)
         end
         # puts("For seed #{seed} got #{curno}")
         curno
-      end
-    end.flatten(1).min
+      end.min
+      puts("#{ri} is done, min is #{m}")
+      `echo m-#{m} >> results.txt`
+      m
+    end.min
   end
 
   # Rewrite range (1...11) giving a remap rule of (4...9) -> (12...19)
@@ -167,7 +177,7 @@ class AoC
   end
 
   EG2 = 46
-  BRUTE = false
+  BRUTE = true
   def two
     if BRUTE
       return two_brute
