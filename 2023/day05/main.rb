@@ -79,6 +79,26 @@ class AoC
     end.min
   end
 
+  def two_brute
+    seed_rngs = @seeds.each_slice(2).map do |start, len|
+      (start ... (start + len))
+    end
+
+    
+    puts("one is done... #{one}")
+    seed_rngs.map do |rng|
+      puts("Working on #{rng}")
+      rng.map do |seed|
+        curno = seed
+        @categories.each do |cat|
+          curno = num_for_cat(cat, curno)
+        end
+        # puts("For seed #{seed} got #{curno}")
+        curno
+      end
+    end.flatten(1).min
+  end
+
   # Rewrite range (1...11) giving a remap rule of (4...9) -> (12...19)
   #
   # Will return {
@@ -219,7 +239,7 @@ class AoC
       range_map = new_range_map
     end
 
-    range_map.values.map(&:begin).min - 1
+    range_map.values.map(&:begin).min
   end
 end
 
@@ -243,7 +263,7 @@ def test(_part)
 
   if passed
     puts "\n\n--- Example part 2"
-    two = runner.two
+    two = runner.two_brute
     this = AoC::EG2
     if two != this
       puts "\n\nExample part 2 was #{two}, expected #{this}"
@@ -277,7 +297,7 @@ def main
     puts "Result 1: #{runner.one}"
   end
   if n == '2'
-    puts "Result 2: #{runner.two}"
+    puts "Result 2: #{runner.two_brute}"
   end
 end
 
