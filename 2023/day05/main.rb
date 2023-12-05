@@ -263,7 +263,7 @@ def test(_part)
 
   if passed
     puts "\n\n--- Example part 2"
-    two = runner.two_brute
+    two = runner.two
     this = AoC::EG2
     if two != this
       puts "\n\nExample part 2 was #{two}, expected #{this}"
@@ -297,7 +297,7 @@ def main
     puts "Result 1: #{runner.one}"
   end
   if n == '2'
-    puts "Result 2: #{runner.two_brute}"
+    puts "Result 2: #{runner.two}"
   end
 end
 
