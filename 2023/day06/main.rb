@@ -34,7 +34,6 @@ class AoC
     time = time.delete_prefix("Time:").gsub(" ", "").to_i
     distance = distance.delete_prefix("Distance:").gsub(" ", "").to_i
 
-    time_ways = 0
     (0...time).count do |charge_time|
       remaining_time = time - charge_time
       distance_travelled = remaining_time * charge_time
