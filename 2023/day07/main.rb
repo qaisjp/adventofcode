@@ -7,6 +7,16 @@ require 'sorbet-runtime'
 require 'pry'
 require 'json'
 
+WRONG = [
+  # higher
+  247607851,
+  # higher
+  248548939,
+
+  # ????
+  248695509,
+]
+
 class Array
   include Comparable
   def <=>(other)
@@ -66,16 +76,24 @@ class AoC
     "A" => 14
   }
 
-  sig{params(str: String).returns(T::Array[Integer])}
-  def str_to_numarray(str)
-    str.chars.map { |c| ATOI.fetch(c) }
+  sig{params(str: String, joker_mode: T::Boolean).returns(T::Array[Integer])}
+  def str_to_numarray(str, joker_mode:)
+    arr = ATOI
+    if joker_mode
+      arr = ATOI_part2
+    end
+    str.chars.map { |c| arr.fetch(c) }
   end
 
-  def self.simplify(str)
+  def self.simplify(str, test: false)
     # puts("\nprocessing #{str.inspect}")
     cs = str.chars
     tally = cs.tally
-    jokers = tally.delete("J") || 0
+    if test
+      jokers = 0
+    else
+      jokers = tally.delete("J") || 0
+    end
     count_to_keys = tally.group_by{_2}.transform_values {|v| v.map{_1[0]}}
     # puts(count_to_keys)
     # puts("jokers: #{jokers}")
@@ -136,7 +154,7 @@ class AoC
     end
 
     sig {params(str: String, joker_mode: T::Boolean).returns(T.nilable(Kind))}
-    def self.for_str(str, joker_mode: false)
+    def self.for_str(str, joker_mode:)
       str = AoC.simplify(str)
 
       if str.include?("J") && joker_mode
@@ -168,10 +186,10 @@ class AoC
         end
       end
 
-      if three_of_a_kind && two_of_a_kind.empty?
-        return Kind::ThreeOfAKind
-      elsif three_of_a_kind
+      if three_of_a_kind && two_of_a_kind[0]
         return Kind::FullHouse
+      elsif three_of_a_kind
+        return Kind::ThreeOfAKind
       end
 
       count_to_keys = tally.group_by{_2}.transform_values {|v| v.map{_1[0]}}
@@ -187,6 +205,16 @@ class AoC
     end
   end
 
+  MappingTest = {
+    "aaaaa" => Kind::FiveOfAKind,
+    "aaaab" => Kind::FourOfAKind,
+    "aaabb" => Kind::FullHouse,
+    "aaabc" => Kind::ThreeOfAKind,
+    "aabbc" => Kind::TwoPair,
+    "aabcd" => Kind::OnePair,
+    "abcde" => Kind::HighCard,
+  }
+
   JokerMapping = {
     # 5 — all five cards have the same label
     "JJJJJ" => Kind::FiveOfAKind,
@@ -195,24 +223,21 @@ class AoC
     "aaaJJ" => Kind::FiveOfAKind,
     "aaaaJ" => Kind::FiveOfAKind,
 
-    # 3 - four of the same, one unique
-    "abJJJ" => Kind::FourOfAKind, # 3 are a
-    "aabJJ" => Kind::FourOfAKind, # 2 are a
-    "aaabJ" => Kind::FourOfAKind, # 1 is a
+    # 3 - four of the same, one unique (aaaab)
+    "abJJJ" => Kind::FourOfAKind, # -> aJJJb -> aaaab
+    "aabJJ" => Kind::FourOfAKind, # -> aaJJb -> aaaab
+    "aaabJ" => Kind::FourOfAKind, # -> aaaJb -> aaaab
 
-    # 1 - three of the same label, 2 of the same label
+    # 1 - three of the same label, 2 of the same label (aaabb)
     "aabbJ" => Kind::FullHouse, # -> aaJbb -> aaabb
 
-    # 1 - three of a same label, remaining two are unique
+    # 1 - three of a same label, remaining two are unique (aaabc)
     "aabcJ" => Kind::ThreeOfAKind, # -> aaJbc -> aaabc
+    "abcJJ" => Kind::ThreeOfAKind,
 
-    # 1 - two cards share one label, two other cards share a second label, and
-    # the remaining card has a third 
-    "abcJJ" => Kind::TwoPair, # abcJJ -> aJbJc -> aabbc
-
-    # 1 - 
-    "abcdJ" => Kind::OnePair,
-
+    # 1 - where two cards share one label, and the other three cards have a
+    # different label from the pair and each other
+    "abcdJ" => Kind::OnePair, # abcdJ -> aJbcd -> aabcd
   }
 
   def test
@@ -232,7 +257,7 @@ class AoC
       "A23A4" => Kind::OnePair,
       "23456" => Kind::HighCard,
     }
-    actual = expected.keys.map { |k| [k, Kind.for_str(k)] }.to_h
+    actual = expected.keys.map { |k| [k, Kind.for_str(k, joker_mode: false)] }.to_h
     if expected != actual
       puts("Got #{JSON.pretty_generate(actual)}")
       exit(1)
@@ -246,15 +271,24 @@ class AoC
     bids = T::Hash[String, Integer].new
 
     jokers_per_hand = T::Array[Integer].new
-    `echo "#{@data.size} rows" > output.txt`
+    lines = ["#{@data.size} rows"]
     @data.each do |line|
       hand, bid = line.scanf("%s %d")
-      line_out = "#{hand} -> #{self.class.simplify(hand)} -> #{Kind.for_str(hand, joker_mode: joker_mode)}"
-      `echo "#{line_out}" >> output.txt`
+      if joker_mode
+        lines << "#{hand} -> #{hand.chars.sort.join("")} --> #{self.class.simplify(hand)} -> #{Kind.for_str(hand, joker_mode: joker_mode)}"
+      end
+
+      expected = Kind.for_str(hand, joker_mode: false)
+      actual = MappingTest.fetch(self.class.simplify(hand, test: true))
+      if expected != actual
+        puts("Expected Kind #{expected} for #{hand} to be MappingTest's #{actual}")
+      end
 
       jokers_per_hand << hand.chars.count("J")
       bids[hand] = bid
     end
+
+    File.write("output.txt", lines.join("\n"))
 
     puts("Max jokers per hand; #{jokers_per_hand.max}")
 
@@ -265,7 +299,7 @@ class AoC
       if cmp != 0
         next cmp
       end
-      str_to_numarray(a) <=> str_to_numarray(b)
+      str_to_numarray(a, joker_mode: joker_mode) <=> str_to_numarray(b, joker_mode: joker_mode)
     end
 
     winnings = ordered_bids.each_with_index.map do |key, rank|
@@ -331,7 +365,15 @@ def main
     puts "Result 1: #{runner.one}"
   end
   if n == '2'
-    puts "Result 2: #{runner.two}"
+    two = runner.two
+    puts "Result 2: #{two}"
+    if WRONG.include?(two)
+      puts("It is wrong.")
+      if two < WRONG[0] || two < WRONG[1]
+        puts("Too low.")
+      end
+    end
+    binding.pry
   end
 end
 
