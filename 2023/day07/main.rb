@@ -50,9 +50,45 @@ class AoC
     "A" => 14
   }
 
+  ATOI_part2 = {
+    "J" => 1,
+    "2" => 2,
+    "3" => 3,
+    "4" => 4,
+    "5" => 5,
+    "6" => 6,
+    "7" => 7,
+    "8" => 8,
+    "9" => 9,
+    "T" => 10,
+    "Q" => 12,
+    "K" => 13,
+    "A" => 14
+  }
+
   sig{params(str: String).returns(T::Array[Integer])}
   def str_to_numarray(str)
     str.chars.map { |c| ATOI.fetch(c) }
+  end
+
+  def self.simplify(str)
+    # puts("\nprocessing #{str.inspect}")
+    cs = str.chars
+    tally = cs.tally
+    jokers = tally.delete("J") || 0
+    count_to_keys = tally.group_by{_2}.transform_values {|v| v.map{_1[0]}}
+    # puts(count_to_keys)
+    # puts("jokers: #{jokers}")
+    result = ""
+    letter = "a"
+    count_to_keys.keys.sort.reverse.each do |count|
+        keys = count_to_keys[count]
+        keys.each do
+            result += letter * count
+            letter = letter.succ
+        end
+    end
+    result + ("J" * jokers)
   end
 
   class Kind < T::Enum
@@ -99,8 +135,17 @@ class AoC
       end
     end
 
-    sig {params(str: String).returns(T.nilable(Kind))}
-    def self.for_str(str)
+    sig {params(str: String, joker_mode: T::Boolean).returns(T.nilable(Kind))}
+    def self.for_str(str, joker_mode: false)
+      str = AoC.simplify(str)
+
+      if str.include?("J") && joker_mode
+        mapped = JokerMapping.fetch(str)
+        if mapped
+          return mapped
+        end
+      end
+
       cs = str.chars
       cs_uniq = cs.uniq
       tally = cs.tally
@@ -142,7 +187,42 @@ class AoC
     end
   end
 
+  JokerMapping = {
+    # 5 — all five cards have the same label
+    "JJJJJ" => Kind::FiveOfAKind,
+    "aJJJJ" => Kind::FiveOfAKind,
+    "aaJJJ" => Kind::FiveOfAKind,
+    "aaaJJ" => Kind::FiveOfAKind,
+    "aaaaJ" => Kind::FiveOfAKind,
+
+    # 3 - four of the same, one unique
+    "abJJJ" => Kind::FourOfAKind, # 3 are a
+    "aabJJ" => Kind::FourOfAKind, # 2 are a
+    "aaabJ" => Kind::FourOfAKind, # 1 is a
+
+    # 1 - three of the same label, 2 of the same label
+    "aabbJ" => Kind::FullHouse, # -> aaJbb -> aaabb
+
+    # 1 - three of a same label, remaining two are unique
+    "aabcJ" => Kind::ThreeOfAKind, # -> aaJbc -> aaabc
+
+    # 1 - two cards share one label, two other cards share a second label, and
+    # the remaining card has a third 
+    "abcJJ" => Kind::TwoPair, # abcJJ -> aJbJc -> aabbc
+
+    # 1 - 
+    "abcdJ" => Kind::OnePair,
+
+  }
+
   def test
+    JokerMapping.keys.each do |expected|
+      actual = self.class.simplify(expected)
+      if expected != actual 
+        raise("Expected #{expected} simplified to #{actual}, instead of itself")
+      end
+    end
+
     expected = {
       "AAAAA" => Kind::FiveOfAKind,
       "AA8AA" => Kind::FourOfAKind,
@@ -160,19 +240,27 @@ class AoC
   end
 
   EG1 = 6440
-  def one
+  def one(joker_mode: false)
     test
 
     bids = T::Hash[String, Integer].new
 
+    jokers_per_hand = T::Array[Integer].new
+    `echo "#{@data.size} rows" > output.txt`
     @data.each do |line|
       hand, bid = line.scanf("%s %d")
+      line_out = "#{hand} -> #{self.class.simplify(hand)} -> #{Kind.for_str(hand, joker_mode: joker_mode)}"
+      `echo "#{line_out}" >> output.txt`
+
+      jokers_per_hand << hand.chars.count("J")
       bids[hand] = bid
     end
 
+    puts("Max jokers per hand; #{jokers_per_hand.max}")
+
     ordered_bids = bids.keys.sort do |a, b|
-      kind_a = Kind.for_str(a)&.ord || 0
-      kind_b = Kind.for_str(b)&.ord || 0
+      kind_a = Kind.for_str(a, joker_mode: joker_mode)&.ord || 0
+      kind_b = Kind.for_str(b, joker_mode: joker_mode)&.ord || 0
       cmp = kind_a <=> kind_b
       if cmp != 0
         next cmp
@@ -185,9 +273,9 @@ class AoC
     end.inject(&:+)
   end
 
-  EG2 = 0
+  EG2 = 5905
   def two
-    0
+    one(joker_mode: true)
   end
 end
 
