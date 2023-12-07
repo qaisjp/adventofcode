@@ -86,7 +86,6 @@ class AoC
   end
 
   def self.simplify(str, test: false)
-    # puts("\nprocessing #{str.inspect}")
     cs = str.chars
     tally = cs.tally
     if test
@@ -94,9 +93,8 @@ class AoC
     else
       jokers = tally.delete("J") || 0
     end
+
     count_to_keys = tally.group_by{_2}.transform_values {|v| v.map{_1[0]}}
-    # puts(count_to_keys)
-    # puts("jokers: #{jokers}")
     result = ""
     letter = "a"
     count_to_keys.keys.sort.reverse.each do |count|
@@ -106,6 +104,7 @@ class AoC
             letter = letter.succ
         end
     end
+
     result + ("J" * jokers)
   end
 
@@ -372,8 +371,12 @@ def main
       if two < WRONG[0] || two < WRONG[1]
         puts("Too low.")
       end
+      if two != 248750248
+        print("WRONG!")
+      else
+        print("Correct.")
+      end
     end
-    binding.pry
   end
 end
 
