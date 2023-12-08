@@ -26,18 +26,11 @@ class H5784
             JSON.parse(line, symbolize_names: true) => {name:, phone:}
             o_phone = phone
             phone = phone.tr("-", "")
-            name.upcase!
+            surname = name.upcase.split(" ")[1]
 
-            surname = name.split(" ")[1]
-            if phone.size == surname.size
-                thingy = surname.chars.each_with_index.count do |c, index|
-                    digit = phone.chars.fetch(index).to_i
-                    Mapping.fetch(digit).include? c
-                end
-            end
-
-            if thingy == surname.size
-                puts({name:, surname:, o_phone:}.to_json)
+            puts(o_phone) if surname.chars.each_with_index.all? do |c, index|
+                digit = phone.chars.fetch(index).to_i
+                Mapping.fetch(digit).include? c
             end
         end
     end
