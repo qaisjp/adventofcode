@@ -23,6 +23,8 @@ class AoC
     prop :val, String
     prop :left, String
     prop :right, String
+    prop :end_with_a, T::Boolean
+    prop :end_with_z, T::Boolean
 
     sig {params(nodes: T::Hash[String, Node]).returns(Node).checked(:never)}
     def left_node(nodes)
@@ -42,11 +44,20 @@ class AoC
     # Populate nodes and root_node
     @nodes.each do |line|
       f, l, r = line.tr("=(,)", "").split
-      if nodes[T.must(f)]
+      f = T.must(f)
+      l = T.must(l)
+      r = T.must(r)
+      if nodes[f]
         raise("Node #{f} already exists")
       end
 
-      nodes[T.must(f)] = Node.new(val: T.must(f), left: T.must(l), right: T.must(r))
+      nodes[f] = Node.new(
+        val: f,
+        left: l,
+        right: r,
+        end_with_a: f.end_with?("A"),
+        end_with_z: f.end_with?("Z")
+      )
     end
 
     nodes
@@ -89,9 +100,50 @@ class AoC
     steps
   end
 
-  EG2 = 0
+  sig {params(curr_nodes: T::Array[Node]).returns(T::Boolean).checked(:never)}
+  def at_end(curr_nodes)
+    curr_nodes.all?(&:end_with_z)
+  end
+
+  EG2 = EG1
   def two
-    0
+    nodes = parse_nodes
+    puts("Nodes parsed ✅")
+
+    curr_nodes = nodes.values.filter(&:end_with_a)
+    steps = 0
+
+    Signal.trap("SIGINT") do
+      puts("Steps is at #{steps}")
+    end
+
+    while !at_end(curr_nodes)
+      @instructions.each do |direction|
+        if at_end(curr_nodes)
+          break
+        end
+
+        steps += 1
+
+        if direction == "L"
+          curr_nodes = curr_nodes.map{_1.left_node(nodes)}
+        elsif direction == "R"
+          curr_nodes = curr_nodes.map{_1.right_node(nodes)}
+        else
+          raise("Unknown direction #{direction}")
+        end
+      end
+    end
+
+    if at_end(curr_nodes)
+      puts("Done after #{steps} steps")
+    else
+      puts("Did not finish, stopped at #{steps} steps")
+    end
+    
+    puts("Done.")
+
+    steps
   end
 end
 
@@ -102,13 +154,17 @@ end
 def test(_part, f, expected)
   runner = AoC.new File.read(f).split("\n\n")
 
-  puts("\n\n--- #{f} part 1")
-  one = runner.one
-  this = expected[0]
-  if one != this
-    puts "#{f} part 1 was #{one}, expected #{this}"
+  if f != "example3.txt"
+    puts("\n\n--- #{f} part 1")
+    one = runner.one
+    this = expected[0]
+    if one != this
+      puts "#{f} part 1 was #{one}, expected #{this}"
+    else
+      puts "#{f} part 1 passes (#{one})"
+      passed = true
+    end
   else
-    puts "#{f} part 1 passes (#{one})"
     passed = true
   end
 
@@ -137,8 +193,13 @@ def main
     return
   end
 
-  if !test(n, "example2.txt", [6,0])
+  if !test(n, "example2.txt", [6,6])
     puts "example2.txt - Tests failed :("
+    return
+  end
+
+  if !test(n, "example3.txt", [6,6])
+    puts "example3.txt - Tests failed :("
     return
   end
 
