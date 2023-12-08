@@ -111,39 +111,40 @@ class AoC
     puts("Nodes parsed ✅")
 
     curr_nodes = nodes.values.filter(&:end_with_a)
-    steps = 0
+    steps_for_nodes = Array.new(curr_nodes.length, 0)
+    done = Array.new(curr_nodes.length, false)
 
     Signal.trap("SIGINT") do
-      puts("Steps is at #{steps}")
+      puts("Done: #{steps_for_nodes.filter}")
+      puts("To do: #{steps_for_nodes.reject}")
     end
 
-    while !at_end(curr_nodes)
+    while !done.all?
       @instructions.each do |direction|
-        if at_end(curr_nodes)
+        if done.all?
           break
         end
 
-        steps += 1
+        curr_nodes = curr_nodes.each_with_index.map do |n, i|
+          if n.end_with_z
+            done[i] = true
+            next n
+          end
+          steps_for_nodes[i] += 1
+          if direction == "L"
+            out = n.left_node(nodes)
+          elsif direction == "R"
+            out = n.right_node(nodes)
+          else
+            raise("Unknown direction #{direction}")
+          end
 
-        if direction == "L"
-          curr_nodes = curr_nodes.map{_1.left_node(nodes)}
-        elsif direction == "R"
-          curr_nodes = curr_nodes.map{_1.right_node(nodes)}
-        else
-          raise("Unknown direction #{direction}")
+          out
         end
       end
     end
 
-    if at_end(curr_nodes)
-      puts("Done after #{steps} steps")
-    else
-      puts("Did not finish, stopped at #{steps} steps")
-    end
-    
-    puts("Done.")
-
-    steps
+    steps_for_nodes.reduce(1, :lcm)
   end
 end
 
