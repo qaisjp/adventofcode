@@ -163,44 +163,7 @@ class AoC
         end
       end
 
-      cs = str.chars
-      cs_uniq = cs.uniq
-      tally = cs.tally
-
-      if cs_uniq.size == 5
-        return Kind::HighCard
-      end
-      
-      three_of_a_kind = T.let(nil, T.nilable(String))
-      two_of_a_kind = T::Array[String].new
-      tally.each do |k, count|
-        if count == 5
-          return Kind::FiveOfAKind
-        elsif count == 4
-          return Kind::FourOfAKind
-        elsif count == 3
-          three_of_a_kind = k
-        elsif count == 2
-          two_of_a_kind << k
-        end
-      end
-
-      if three_of_a_kind && two_of_a_kind[0]
-        return Kind::FullHouse
-      elsif three_of_a_kind
-        return Kind::ThreeOfAKind
-      end
-
-      count_to_keys = tally.group_by{_2}.transform_values {|v| v.map{_1[0]}}
-      if two_of_a_kind.size == 2
-        return Kind::TwoPair
-      end
-
-      if two_of_a_kind.size == 1 && (cs_uniq - [two_of_a_kind.fetch(0)]).size == 3
-        return Kind::OnePair
-      end
-
-      return nil
+      return MappingTest[AoC.simplify(str, test: true)]
     end
   end
 
@@ -280,7 +243,7 @@ class AoC
       expected = Kind.for_str(hand, joker_mode: false)
       actual = MappingTest.fetch(self.class.simplify(hand, test: true))
       if expected != actual
-        puts("Expected Kind #{expected} for #{hand} to be MappingTest's #{actual}")
+        puts("Expected Kind #{expected} for #{hand} (s:#{self.class.simplify(hand)}) to be MappingTest's #{actual}")
       end
 
       jokers_per_hand << hand.chars.count("J")
@@ -288,8 +251,6 @@ class AoC
     end
 
     File.write("output.txt", lines.join("\n"))
-
-    puts("Max jokers per hand; #{jokers_per_hand.max}")
 
     ordered_bids = bids.keys.sort do |a, b|
       kind_a = Kind.for_str(a, joker_mode: joker_mode)&.ord || 0
@@ -344,7 +305,7 @@ def test(_part)
 end
 
 def main
-  run_both = T.let(false, T::Boolean)
+  run_both = T.let(true, T::Boolean)
 
   n = ARGV.shift
 
@@ -361,20 +322,16 @@ def main
 
   puts "\n\n--- Part #{n} solution" if n != nil
   if n == '1' || (run_both && n == '2')
-    puts "Result 1: #{runner.one}"
+    one = runner.one
+    puts "Result 1: #{one} (#{one == 249390788})"
   end
   if n == '2'
     two = runner.two
-    puts "Result 2: #{two}"
+    puts "Result 2: #{two} (#{two == 248750248})"
     if WRONG.include?(two)
-      puts("It is wrong.")
+      puts("It is known to be wrong.")
       if two < WRONG[0] || two < WRONG[1]
         puts("Too low.")
-      end
-      if two != 248750248
-        print("WRONG!")
-      else
-        print("Correct.")
       end
     end
   end
