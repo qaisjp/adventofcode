@@ -13,13 +13,10 @@ class AoC
     @data = T.let(data, T::Array[String])
   end
 
-  def recursive_next(arr)
+  def recursive_next(arr, mul=1)
     all_zero = T.let(true, T::Boolean)
     nums = arr.each_cons(2).map do |a, b|
-      n = b - a
-      # if n < 0
-      #   raise "wtf #{n}"
-      # end
+      n = (b - a) * mul
       if n != 0
         all_zero = false
       end
@@ -29,23 +26,27 @@ class AoC
     if all_zero
       return 0
     end
-    return nums.last + recursive_next(nums)
+    if mul == 1
+      return nums.last + recursive_next(nums, mul)
+    else
+      return nums.first + recursive_next(nums, mul)
+    end
   end
 
   EG1 = 114
   def one
     @data.map do |line|
       nums = line.split.map(&:to_i)
-      puts("Processing #{line}")
-      result = T.must(nums.last) + recursive_next(nums)
-      puts("Result was #{result}")
-      result
+      T.must(nums.last) + recursive_next(nums)
     end.sum
   end
 
-  EG2 = 0
+  EG2 = 2
   def two
-    0
+    @data.map do |line|
+      nums = line.split.map(&:to_i)
+      T.must(nums.first) + recursive_next(nums, -1)
+    end.sum
   end
 end
 
