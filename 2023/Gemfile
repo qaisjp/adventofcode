@@ -11,3 +11,7 @@ gem 'sorbet-runtime'
 gem 'tapioca', require: false, :group => :development
 
 gem "parallel", "~> 1.23"
+
+gem "scanf", "~> 1.0"
+
+gem "pry", "~> 0.14.2"
