@@ -34,26 +34,25 @@ class AoC
   end
 
   EG1 = 374
-  def one
+  def one(mul: 2)
     row_size = T.must(@grid.first&.size)
 
-    # Add extra blank rows
-    @grid = @grid.flat_map do |row|
+    repeated_ys = T::Set[Integer].new
+    repeated_xs = T::Set[Integer].new
+
+    # Find blank rows
+    @grid = @grid.each_with_index do |row, i|
       if row.all? {_1 == "."}
-        [row, row.dup]
-      else
-        [row]
+        repeated_ys << i
       end
     end
 
     @grid = @grid.transpose
 
-    # Add extra blank rows (again)
-    @grid = @grid.flat_map do |row|
+    # Find blank columns
+    @grid = @grid.each_with_index do |row, i|
       if row.all? {_1 == "."}
-        [row, row.dup]
-      else
-        [row]
+        repeated_xs << i
       end
     end
 
@@ -72,9 +71,16 @@ class AoC
     puts("galaxy_positions: #{galaxy_positions}")
 
     result = galaxy_positions.to_a.combination(2).map do |(y1, x1), (y2, x2)|
+
+      xrange = ([x1, x2].min .. [x1, x2].max)
+      xcount = repeated_xs.count {|x| xrange.include?(x)}
+
+      yrange = ([y1, y2].min .. [y1, y2].max)
+      ycount = repeated_ys.count {|y| yrange.include?(y)}
+
       # Distance
       # puts("Seen #{y1},#{x1} and #{y2},#{x2}")
-      (y1 - y2).abs + (x1 - x2).abs
+      (y1 - y2).abs + (x1 - x2).abs - ycount - xcount + (ycount * mul) + (xcount * mul)
     end.sum
 
     # print_grid(@grid, [])
@@ -106,9 +112,9 @@ class AoC
     end
   end
 
-  EG2 = 0
+  EG2 = 82000210
   def two
-    0
+    one(mul: 1000000)
   end
 end
 
