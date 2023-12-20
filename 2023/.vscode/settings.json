@@ -1,3 +1,6 @@
 {
-    "[ruby]": {"editor.formatOnSave": false}
+    "[ruby]": {
+        "editor.formatOnSave": false
+    },
+    "ruby.rubocop.onSave": false
 }
